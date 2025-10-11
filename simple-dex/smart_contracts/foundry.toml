@@ -1,0 +1,12 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+remappings = ["@openzeppelin/=lib/openzeppelin-contracts/"]
+evm_version = "paris"
+
+# Default Solidity compiler version
+solc_version = "0.8.20"
+
+[profile.sepolia]
+rpc_url = "${https://eth-sepolia.g.alchemy.com/v2/sUuOcizH7Ge1QgCpwwbxKp8_Asaulmv3}"
