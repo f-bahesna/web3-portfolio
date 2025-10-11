@@ -10,21 +10,36 @@ function App() {
   const [amount, setAmount] = useState("")
   const [rate, setRate] = useState(0)
   const [status, setStatus] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [userBalance, setUserBalance] = useState({
+    arbi: "0",
+    doge: "0"
+  })
 
-  useEffect( () => {
+  const isDisabled = !amount || Number(amount) <= 0;
+
+  useEffect(() => {
     const load = async () => {
       const {web3, accounts, contracts } = await initWeb3();
       setWeb3(web3)
       setAccount(accounts[0])
       setContracts(contracts)
-
       const rate = await contracts.dex.methods.rate().call();
+      const arbiBalance = await contracts.arbiFake.methods.balanceOf(accounts[0]).call();
+      const dogeBalance = await contracts.dogeFake.methods.balanceOf(accounts[0]).call();
+
+      setUserBalance({
+          arbi: web3.utils.fromWei(arbiBalance, "ether"),
+          doge: web3.utils.fromWei(dogeBalance, "ether")
+        })
       setRate(rate);
     };
+
     load();
   }, []);
 
     const swapArbiToDoge = async () => {
+      setLoading(true)
       const value = web3.utils.toWei(amount, "ether")
 
       try {
@@ -38,6 +53,8 @@ function App() {
         setStatus("Approving failed...")
         alert("approving failed | Transaction reverted");
         resetStatus()
+        setLoading(false)
+        setAmount(0)
       }
       
       try {
@@ -52,9 +69,13 @@ function App() {
         setStatus("Swap failed...")
         alert("swap failed | Transaction reverted");
         resetStatus()
+        setLoading(false)
+        setAmount(0)
       }
 
       resetStatus()
+      setLoading(false)
+      setAmount(0)
     }
 
     const resetStatus = async () => {
@@ -64,19 +85,24 @@ function App() {
     }
 
     return (
-      <div style={{ display: "inline-block", justifyContent: "center", alignItems: "center", padding: "2rem"}}>
-        <h1>Simple Dex</h1>
+      <div className='my-8 p-8 bg-black text-white border border-double rounded-md'>
         <p>Connected Account: {account}</p>
-        <p>1 Arbifake = {rate} DogeFake</p>
-        <p>Status : { status }</p>
-
-        <input
-          type='text'
-          placeholder='Amount of ArbiFake'
-          value={amount}
-          onChange={ (e) => setAmount(e.target.value) }
-        />
-        <button onClick={swapArbiToDoge}>Swab ArbiFake => DogeFake</button>
+        <p>Rate : 1 Arbifake = {rate} DogeFake</p>
+        
+        <p className='py-4'>You Have</p>
+        <p>ArbiFake = {userBalance.arbi} AFAKE</p>
+        <p>DogeFake = {userBalance.doge} DFAKE</p>
+        <p className='py-3'>Status : { status }</p>
+        <div className='py-4'>
+          <input
+            className='border py-2 rounded-md text-center'
+            type='number'
+            placeholder='Amount of ArbiFake'
+            value={amount}
+            onChange={ (e) => setAmount(e.target.value) }
+          />
+        </div>
+          <button disabled={isDisabled || loading} className={isDisabled ? "opacity-25": "opacity-100"} onClick={swapArbiToDoge}>{loading ? 'Loading...' : 'Swap ArbiFake to DogeFake'}</button>
       </div>
     );
 }

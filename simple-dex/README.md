@@ -145,6 +145,7 @@ forge test
 
 ## 💡 Future Improvements
 
+* Enhance UI (like uniswap etc).
 * Add **dynamic price ratio** (AMM-like formula).
 * Add **liquidity pool tracking** and **rewards**.
 * Integrate **TheGraph** for transaction analytics.

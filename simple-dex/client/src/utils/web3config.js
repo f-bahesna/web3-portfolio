@@ -18,7 +18,8 @@ export const initWeb3 = async () => {
         await window.ethereum.request({ method: "eth_requestAccounts" });
         accounts = await web3.eth.getAccounts(); // get accounts
         
-        const networkId = (await (web3.eth.net.getId())).toString();
+        // foundry dont use this
+        // const networkId = (await (web3.eth.net.getId())).toString();
 
         const arbiFake = new web3.eth.Contract(ArbiFake.abi, ARBIFAKE_ADDRESS);
         const dogeFake = new web3.eth.Contract(DogeFake.abi, DOGEFAKE_ADDRESS);
