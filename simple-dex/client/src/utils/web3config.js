@@ -8,9 +8,9 @@ let web3;
 let accounts;
 let contracts = {};
 
-const SIMPLE_DEX_ADDRESS = env.VITE_SIMPLE_DEX_ADDRESS; 
-const ARBIFAKE_ADDRESS = env.VITE_ARBIFAKE_ADDRESS; 
-const DOGEFAKE_ADDRESS = env.VITE_DOGEFAKE_ADDRESS; 
+const SIMPLE_DEX_ADDRESS = env.VITE_SIMPLE_DEX_ADDRESS;
+const ARBIFAKE_ADDRESS = env.VITE_ARBIFAKE_ADDRESS;
+const DOGEFAKE_ADDRESS = env.VITE_DOGEFAKE_ADDRESS;
 
 export const initWeb3 = async () => {
     if (window.ethereum){

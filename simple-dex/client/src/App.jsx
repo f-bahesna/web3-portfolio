@@ -104,7 +104,6 @@ function App() {
             onChange={ (e) => setAmount(e.target.value) }
           />
         </div>
-        
           <button disabled={isDisabled || loading} className={isDisabled ? "opacity-25": "opacity-100"} onClick={swapArbiToDoge}>{loading ? 'Loading...' : <>Swap ArbiFake {<LuArrowLeftRight className='mx-auto' />} DogeFake</>}</button>
       </div>
     );
