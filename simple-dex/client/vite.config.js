@@ -4,10 +4,5 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
-  resolve: {
-    alias: {
-      '@contracts': path.resolve(__dirname, '../smart_contracts/out')
-    }
-  }
+  plugins: [react()]
 })

@@ -1,7 +1,7 @@
 import Web3 from "web3";
-import ArbiFake from "@contracts/ArbiFake.sol/ArbiFake.json";
-import DogeFake from "@contracts/DogeFake.sol/DogeFake.json";
-import SimpleDEX from "@contracts/SimpleDEX.sol/SimpleDEX.json";
+import ArbiFake from "../../../../ArbiFake.sol/ArbiFake.json";
+import DogeFake from "../../../../DogeFake.sol/DogeFake.json";
+import SimpleDEX from "../../../../SimpleDEX.sol/SimpleDEX.json";
 const env = import.meta.env;
 
 let web3;
