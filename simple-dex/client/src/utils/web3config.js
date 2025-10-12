@@ -1,7 +1,7 @@
 import Web3 from "web3";
-import ArbiFake from "../../../../ArbiFake.sol/ArbiFake.json";
-import DogeFake from "../../../../DogeFake.sol/DogeFake.json";
-import SimpleDEX from "../../../../SimpleDEX.sol/SimpleDEX.json";
+import ArbiFake from "../../../smart_contracts/out/ArbiFake.sol/ArbiFake.json";
+import DogeFake from "../../../smart_contracts/out/DogeFake.sol/DogeFake.json";
+import SimpleDEX from "../../../smart_contracts/out/SimpleDEX.sol/SimpleDEX.json";
 const env = import.meta.env;
 
 let web3;
@@ -18,7 +18,7 @@ export const initWeb3 = async () => {
         await window.ethereum.request({ method: "eth_requestAccounts" });
         accounts = await web3.eth.getAccounts(); // get accounts
         
-        // foundry dont use this
+        // foundry dont use
         // const networkId = (await (web3.eth.net.getId())).toString();
 
         const arbiFake = new web3.eth.Contract(ArbiFake.abi, ARBIFAKE_ADDRESS);
