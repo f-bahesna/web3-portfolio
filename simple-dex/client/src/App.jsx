@@ -1,6 +1,8 @@
 import './App.css'
 import { useEffect, useState } from "react"
 import {initWeb3, getDexContract} from "./utils/web3config"
+import { LuArrowLeftRight } from "react-icons/lu";
+
 initWeb3();
 
 function App() {
@@ -102,7 +104,8 @@ function App() {
             onChange={ (e) => setAmount(e.target.value) }
           />
         </div>
-          <button disabled={isDisabled || loading} className={isDisabled ? "opacity-25": "opacity-100"} onClick={swapArbiToDoge}>{loading ? 'Loading...' : 'Swap ArbiFake to DogeFake'}</button>
+        
+          <button disabled={isDisabled || loading} className={isDisabled ? "opacity-25": "opacity-100"} onClick={swapArbiToDoge}>{loading ? 'Loading...' : <>Swap ArbiFake {<LuArrowLeftRight className='mx-auto' />} DogeFake</>}</button>
       </div>
     );
 }
