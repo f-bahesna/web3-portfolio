@@ -9,9 +9,8 @@ let accounts;
 let contracts = {};
 
 const SIMPLE_DEX_ADDRESS = env.VITE_SIMPLE_DEX_ADDRESS;
-const ARBIFAKE_ADDRESS = env.VITE_ARBIFAKE_ADDRESS;
 const NEW_ARBIFAKE_ADDRESS = env.VITE_NEW_ARBIFAKE_ADDRESS;
-const DOGEFAKE_ADDRESS = env.VITE_DOGEFAKE_ADDRESS;
+const NEW_DOGEFAKE_ADDRESS = env.VITE_NEW_DOGEFAKE_ADDRESS;
 
 export const initWeb3 = async () => {
     if (window.ethereum){
@@ -23,7 +22,7 @@ export const initWeb3 = async () => {
         // const networkId = (await (web3.eth.net.getId())).toString();
 
         const arbiFake = new web3.eth.Contract(ArbiFake.abi, NEW_ARBIFAKE_ADDRESS);
-        const dogeFake = new web3.eth.Contract(DogeFake.abi, DOGEFAKE_ADDRESS);
+        const dogeFake = new web3.eth.Contract(DogeFake.abi, NEW_DOGEFAKE_ADDRESS);
         const dex = new web3.eth.Contract(SimpleDEX.abi, SIMPLE_DEX_ADDRESS);
 
         contracts = { arbiFake, dogeFake, dex };
