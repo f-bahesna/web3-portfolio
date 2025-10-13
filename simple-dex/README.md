@@ -2,6 +2,8 @@
 
 ## 🦄 Simple DEX — Token Swap dApp
 
+https://simple-dex-lime.vercel.app/
+
 A minimal decentralized exchange (DEX) that allows users to **swap between two ERC-20 tokens** directly on-chain.
 Built using **Solidity**, **Foundry**, and a **React + Vite** frontend connected via **Web3.js**.
 
