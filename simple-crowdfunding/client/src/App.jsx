@@ -110,37 +110,46 @@ function App() {
           {loadingCampaigns ? "Loading Campaigns..." : "Active Campaigns"}
         </h3>
       </div>
-      {campaigns.map((c, i) => (
-        <div
-          key={i}
-          style={{
-            display: "inline-block",
-            borderRadius: "20px",
-            boxShadow: "0 2px 2px #ccc",
-            border: "1px solid gray",
-            width: "200px",
-            margin: "20px",
-            padding: "20px",
-          }}
-        >
-          <h2>{c.title}</h2>
-          <p>{c.description}</p>
-          <p>
-            Raised: {web3.utils.fromWei(c.amountRaised.toString(), "ether")} ETH
-            / Goal: {web3.utils.fromWei(c.goal.toString(), "ether")} ETH
-          </p>
-          {!c.completed && (
-            <button
-              disabled={loadingFundCampaign}
-              onClick={() => fundCampaign(i, "0.0001")}
-            >
-              {" "}
-              {loadingFundCampaign === i ? "Processing..." : "Fund 0.0001 ETH"}
-            </button>
-          )}
-          {c.completed && <strong>Goal Reached!</strong>}
-        </div>
-      ))}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: "15px",
+        }}
+      >
+        {campaigns.map((c, i) => (
+          <div
+            key={i}
+            style={{
+              borderRadius: "10px",
+              alignItems: "center",
+              boxShadow: "0 2px 2px #ccc",
+              border: "1px solid gray",
+              padding: "16px",
+            }}
+          >
+            <h2>{c.title}</h2>
+            <p>{c.description}</p>
+            <p>
+              Raised: {web3.utils.fromWei(c.amountRaised.toString(), "ether")}{" "}
+              ETH
+            </p>
+            <p>Goal: {web3.utils.fromWei(c.goal.toString(), "ether")} ETH</p>
+            {!c.completed && (
+              <button
+                disabled={loadingFundCampaign}
+                onClick={() => fundCampaign(i, "0.0001")}
+              >
+                {" "}
+                {loadingFundCampaign === i
+                  ? "Processing..."
+                  : "Fund 0.0001 ETH"}
+              </button>
+            )}
+            {c.completed && <strong>Goal Reached!</strong>}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
