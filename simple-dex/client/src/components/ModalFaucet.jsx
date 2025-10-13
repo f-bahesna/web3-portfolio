@@ -6,7 +6,7 @@ import { getFaucet } from "./../utils/web3config";
 
 const env = import.meta.env;
 const NEW_ARBIFAKE_ADDRESS = env.VITE_NEW_ARBIFAKE_ADDRESS;
-const DOGEFAKE_ADDRESS = env.VITE_DOGEFAKE_ADDRESS;
+const NEW_DOGEFAKE_ADDRESS = env.VITE_NEW_DOGEFAKE_ADDRESS;
 
 const ModalFaucet = ({ isVisible, onClose }) => {
   if (!isVisible) return null;
@@ -32,7 +32,7 @@ const ModalFaucet = ({ isVisible, onClose }) => {
       id: 2,
       title: "DogeFake",
       ticker: "DFAKE",
-      address: DOGEFAKE_ADDRESS,
+      address: NEW_DOGEFAKE_ADDRESS,
       abi: DogeFake.abi,
     },
   ];

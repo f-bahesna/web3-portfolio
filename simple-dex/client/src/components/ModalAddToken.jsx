@@ -2,10 +2,8 @@ import { useState } from "react";
 const env = import.meta.env;
 import ModalWrapper from "./ModalWrapper";
 
-const SIMPLE_DEX_ADDRESS = env.VITE_SIMPLE_DEX_ADDRESS;
-const ARBIFAKE_ADDRESS = env.VITE_ARBIFAKE_ADDRESS;
 const NEW_ARBIFAKE_ADDRESS = env.VITE_NEW_ARBIFAKE_ADDRESS;
-const DOGEFAKE_ADDRESS = env.VITE_DOGEFAKE_ADDRESS;
+const NEW_DOGEFAKE_ADDRESS = env.VITE_NEW_DOGEFAKE_ADDRESS;
 
 const ModalAddToken = ({ isVisible, onClose }) => {
   if (!isVisible) return null;
@@ -45,7 +43,12 @@ const ModalAddToken = ({ isVisible, onClose }) => {
       ticker: "AFAKE",
       address: NEW_ARBIFAKE_ADDRESS,
     },
-    { id: 2, title: "DogeFake", ticker: "DFAKE", address: DOGEFAKE_ADDRESS },
+    {
+      id: 2,
+      title: "DogeFake",
+      ticker: "DFAKE",
+      address: NEW_DOGEFAKE_ADDRESS,
+    },
   ];
 
   return (
