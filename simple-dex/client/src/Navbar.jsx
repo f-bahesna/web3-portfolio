@@ -1,9 +1,11 @@
 import { useState } from "react";
-import Modal from "./components/Modal";
+import ModalAddToken from "./components/ModalAddToken";
+import ModalFaucet from "./components/ModalFaucet";
 
 const Navbar = () => {
   const [nav, setNav] = useState(false);
-  const [showModal, setShowModal] = useState(false);
+  const [showModalAddToken, setShowModalAddToken] = useState(false);
+  const [showModalFaucet, setShowModalFaucet] = useState(false);
 
   const handleNav = () => {
     setNav(!nav);
@@ -16,7 +18,11 @@ const Navbar = () => {
 
   const handleNavClick = (item) => {
     if (item.text === "Token") {
-      setShowModal(true);
+      setShowModalAddToken(true);
+    }
+
+    if (item.text === "Faucet") {
+      setShowModalFaucet(true);
     }
   };
 
@@ -34,11 +40,17 @@ const Navbar = () => {
           </li>
         ))}
       </ul>
-      {showModal && (
-        <Modal
-          isVisible={showModal}
-          onClose={() => setShowModal(false)}
-        ></Modal>
+      {showModalAddToken && (
+        <ModalAddToken
+          isVisible={showModalAddToken}
+          onClose={() => setShowModalAddToken(false)}
+        ></ModalAddToken>
+      )}
+      {showModalFaucet && (
+        <ModalFaucet
+          isVisible={showModalFaucet}
+          onClose={() => setShowModalFaucet(false)}
+        ></ModalFaucet>
       )}
     </div>
   );

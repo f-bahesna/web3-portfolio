@@ -10,6 +10,7 @@ let contracts = {};
 
 const SIMPLE_DEX_ADDRESS = env.VITE_SIMPLE_DEX_ADDRESS;
 const ARBIFAKE_ADDRESS = env.VITE_ARBIFAKE_ADDRESS;
+const NEW_ARBIFAKE_ADDRESS = env.VITE_NEW_ARBIFAKE_ADDRESS;
 const DOGEFAKE_ADDRESS = env.VITE_DOGEFAKE_ADDRESS;
 
 export const initWeb3 = async () => {
@@ -21,7 +22,7 @@ export const initWeb3 = async () => {
         // foundry dont use
         // const networkId = (await (web3.eth.net.getId())).toString();
 
-        const arbiFake = new web3.eth.Contract(ArbiFake.abi, ARBIFAKE_ADDRESS);
+        const arbiFake = new web3.eth.Contract(ArbiFake.abi, NEW_ARBIFAKE_ADDRESS);
         const dogeFake = new web3.eth.Contract(DogeFake.abi, DOGEFAKE_ADDRESS);
         const dex = new web3.eth.Contract(SimpleDEX.abi, SIMPLE_DEX_ADDRESS);
 
@@ -33,16 +34,17 @@ export const initWeb3 = async () => {
     }
 }
 
-export const getDexContract = async () => {
-    if(!window.ethereum) throw new Error("Metamask not found");
+export const getFaucet = async (ticker, address, abi) => {
+    try {
+        web3 = new Web3(window.ethereum);
 
-    const web3 = new Web3(window.ethereum);
-    const accounts = await web3.eth.requestAccounts();
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts"});
+        const contract = new web3.eth.Contract(abi, address);
 
-    const dex = new web3.eth.Contract(SimpleDEX.abi, CONTRACT_ADDRESS);
-
-    console.log("Connected with account: ", accounts[0]);
-    console.log("DEX Contract:", dex);
-
-    return { web3, dex, account: accounts[0]};
+        const tx = await contract.methods.faucet().send({ from: accounts[0]});
+        alert(`You received 10 ${ticker} tokens!`);
+    } catch (error) {
+        console.log(error)
+        alert("faucet failed: you already claimed tokens");
+    }
 }
