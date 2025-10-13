@@ -5,11 +5,15 @@ import Web3 from "web3";
 function App() {
   const [web3Data, setWeb3Data] = useState({});
   const [campaigns, setCampaigns] = useState([]);
+  const [loadingCampaigns, setLoadingCampaings] = useState(true);
   const [newCampaign, setNewCampaign] = useState({
     title: "",
     desc: "",
     goal: "",
   });
+
+  const [loading, setLoading] = useState(false);
+  const [loadingFundCampaign, setLoadingFundCampaign] = useState("");
 
   const web3 = new Web3(window.ethereum);
 
@@ -24,12 +28,14 @@ function App() {
   const loadCampaigns = async (contract) => {
     const campaigns = await contract.methods.getCampaigns().call();
     setCampaigns(campaigns);
+    setLoadingCampaings(false);
   };
 
   const createCampaign = async (e) => {
+    setLoading(true);
     e.preventDefault();
     const { contract, selectedAccount } = web3Data;
-    console.log(contract, selectedAccount);
+
     try {
       await contract.methods
         .createCampaign(newCampaign.title, newCampaign.desc, newCampaign.goal)
@@ -39,9 +45,11 @@ function App() {
     }
 
     loadCampaigns(contract);
+    setLoading(false);
   };
 
   const fundCampaign = async (id, amount) => {
+    setLoadingFundCampaign(id);
     const { contract, selectedAccount, web3 } = web3Data;
     await contract.methods.fund(id).send({
       from: selectedAccount,
@@ -49,6 +57,7 @@ function App() {
     });
 
     loadCampaigns(contract);
+    setLoadingFundCampaign(false);
   };
 
   return (
@@ -77,13 +86,16 @@ function App() {
           }
         />
         <input
+          type="number"
           style={{ padding: "10px", borderRadius: "10px", margin: "5px" }}
           placeholder="Goal (ETH)"
           onChange={(e) =>
             setNewCampaign({ ...newCampaign, goal: e.target.value })
           }
         />
-        <button type="submit">Create</button>
+        <button disabled={loading} type="submit">
+          {loading ? "Creating campaign..." : "Create"}
+        </button>
       </form>
 
       <hr />
@@ -94,7 +106,9 @@ function App() {
           alignItems: "center",
         }}
       >
-        <h3>Active Campaigns</h3>
+        <h3>
+          {loadingCampaigns ? "Loading Campaigns..." : "Active Campaigns"}
+        </h3>
       </div>
       {campaigns.map((c, i) => (
         <div
@@ -116,9 +130,12 @@ function App() {
             / Goal: {web3.utils.fromWei(c.goal.toString(), "ether")} ETH
           </p>
           {!c.completed && (
-            <button onClick={() => fundCampaign(i, "0.0001")}>
+            <button
+              disabled={loadingFundCampaign}
+              onClick={() => fundCampaign(i, "0.0001")}
+            >
               {" "}
-              Fund 0.0001 ETH{" "}
+              {loadingFundCampaign === i ? "Processing..." : "Fund 0.0001 ETH"}
             </button>
           )}
           {c.completed && <strong>Goal Reached!</strong>}
