@@ -18,7 +18,8 @@ Built using **Solidity**, **Foundry**, and a **React + Vite** frontend connected
 * Swap rates are determined by a fixed ratio set during deployment.
 
 🧩 Features
-💧 Faucet Feature
+
+💧 Claim Faucet
 
 Users can claim free test tokens (ArbiFake and DogeFake) directly from the DEX.
 
