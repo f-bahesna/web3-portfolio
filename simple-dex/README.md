@@ -17,7 +17,58 @@ Built using **Solidity**, **Foundry**, and a **React + Vite** frontend connected
 * The DEX holds token reserves to facilitate swaps.
 * Swap rates are determined by a fixed ratio set during deployment.
 
-This project is perfect for learning **smart contract interaction**, **liquidity pools**, and **frontend integration** using **Foundry** instead of Truffle.
+🧩 Features
+💧 Faucet Feature
+
+Users can claim free test tokens (ArbiFake and DogeFake) directly from the DEX.
+
+Faucet helps users get initial balances for testing swaps.
+
+Each wallet can claim once per period (configurable in contract).
+
+🪙 Import Token
+
+Users can add test tokens (ArbiFake, DogeFake) to MetaMask using the Navbar “Token" button.
+
+🔁 Swap Token
+
+Swap between two ERC20 tokens (e.g. ArbiFake ↔ DogeFake).
+
+Uses a simple constant product formula (x * y = k) to determine rates.
+
+Real-time update of price impact, minimum received, and estimated gas cost.
+
+💰 Liquidity Pool (Optional / Coming Soon)
+
+Users can add and remove liquidity to support token swaps.
+
+Displays pool share, LP tokens, and reserve ratio.
+
+Provides basic AMM simulation for educational purposes.
+
+🔗 Wallet Connection
+
+Supports MetaMask connection and automatic network detection (e.g. Sepolia testnet).
+
+Displays connected wallet address and token balances.
+
+🧠 Smart Contracts
+
+Written in Solidity and tested using Foundry.
+
+Includes mock ERC20 tokens (ArbiFake, DogeFake) for faucet and swap testing.
+
+DEX contract handles token swap, liquidity management, and pricing logic.
+
+🌐 Frontend (React)
+
+Built with React + Vite + TailwindCSS for speed and simplicity.
+
+Uses web3.js for blockchain interactions.
+
+Clean modular structure (components like Navbar, SwapBox, FaucetModal, TokenList).
+
+This project is perfect for learning **smart contract interaction**, **liquidity pools**, and **frontend integration** using **Foundry**.
 
 ---
 
@@ -157,5 +208,5 @@ forge test
 ## 🧑‍💻 Author
 
 **Frada Bahesna**
-Backend Engineer & Web3 Enthusiast
+Backend Developer & Blockchain Developer Enthusiast
 📫 Connect: [GitHub](https://github.com/f-bahesna)
