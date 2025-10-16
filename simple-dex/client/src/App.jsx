@@ -23,13 +23,10 @@ function App() {
 
   const isDisabled = !amount || Number(amount) <= 0;
 
-  useEffect(async () => {
-    window.ethereum.on("accountsChanged", loadAccount);
-
-    const rate = await contracts.dex.methods.rate().call();
-    setRate(rate);
-
+  useEffect(() => {
     loadAccount();
+
+    window.ethereum.on("accountsChanged", loadAccount);
   }, []);
 
   const loadAccount = async () => {
@@ -50,6 +47,9 @@ function App() {
       arbi: web3.utils.fromWei(arbiBalance, "ether"),
       doge: web3.utils.fromWei(dogeBalance, "ether"),
     });
+
+    const rate = await contracts.dex.methods.rate().call();
+    setRate(rate);
 
     localStorage.setItem("account", accounts[0]);
   };
