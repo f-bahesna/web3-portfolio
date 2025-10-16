@@ -112,19 +112,17 @@ function App() {
               </div>
               {/* end top */}
               {/* center */}
-              <div className="flex flex-row justify-between rounded-md py-2">
+              <div className="flex flex-row items-center justify-between rounded-md py-2">
                 <input
                   className="w-2/3 font-mono bg-transparent text-3xl placeholder:text-3xl focus:outline-none rounded-md bg-zinc-800 py-2"
                   type="number"
                   placeholder="0.0001"
                 />
-                <div>
-                  <div className="text-white cursor-pointer font-sans text-2xl">
-                    ArbiFake
-                  </div>
-                  <div className="text-4xl cursor-pointer">
-                    <RiArrowDropDownLine />
-                  </div>
+                <div className="text-white cursor-pointer font-sans text-2xl">
+                  ArbiFake
+                </div>
+                <div className="text-4xl cursor-pointer">
+                  <RiArrowDropDownLine />
                 </div>
               </div>
               {/* end center */}
@@ -143,7 +141,7 @@ function App() {
               </div>
               {/* end top */}
               {/* center */}
-              <div className="flex flex-row justify-between rounded-md py-2">
+              <div className="flex flex-row items-center justify-between rounded-md py-2">
                 <input
                   disabled
                   className="w-2/3 font-mono bg-transparent placeholder:text-2xl rounded-md bg-black py-2"
@@ -152,6 +150,9 @@ function App() {
                 />
                 <div className="text-white cursor-pointer font-sans text-2xl">
                   ArbiFake
+                </div>
+                <div className="text-4xl cursor-pointer">
+                  <RiArrowDropDownLine />
                 </div>
               </div>
               {/* end center */}
