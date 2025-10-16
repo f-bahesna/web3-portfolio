@@ -19,10 +19,15 @@ function App() {
     doge: "0",
   });
 
+  const [isMax, setIsMax] = useState(false);
+
   const isDisabled = !amount || Number(amount) <= 0;
 
-  useEffect(() => {
+  useEffect(async () => {
     window.ethereum.on("accountsChanged", loadAccount);
+
+    const rate = await contracts.dex.methods.rate().call();
+    setRate(rate);
 
     loadAccount();
   }, []);
@@ -34,7 +39,6 @@ function App() {
     setAccount(accounts[0]);
     setContracts(contracts);
 
-    const rate = await contracts.dex.methods.rate().call();
     const arbiBalance = await contracts.arbiFake.methods
       .balanceOf(accounts[0])
       .call();
@@ -46,7 +50,8 @@ function App() {
       arbi: web3.utils.fromWei(arbiBalance, "ether"),
       doge: web3.utils.fromWei(dogeBalance, "ether"),
     });
-    setRate(rate);
+
+    localStorage.setItem("account", accounts[0]);
   };
 
   const swapArbiToDoge = async () => {
@@ -94,6 +99,17 @@ function App() {
     }, 5000);
   };
 
+  const setMaxTopAmountSwap = () => {
+    setAmount(userBalance.arbi);
+    setIsMax(true);
+  };
+
+  const setManualTopAmountSwap = (e) => {
+    const value = e.target.value;
+    setAmount(value);
+    setIsMax(false);
+  };
+
   return (
     <>
       <div className="flex justify-center items-center">
@@ -104,8 +120,8 @@ function App() {
               <div className="flex flex-row justify-between font-mono">
                 <p>Selling</p>
                 <div className="font-mono text-md">
-                  0.0001
-                  <span className="px-1">
+                  {userBalance.arbi}
+                  <span onClick={setMaxTopAmountSwap} className="px-1">
                     <a href="#">Max</a>
                   </span>
                 </div>
@@ -116,6 +132,8 @@ function App() {
                 <input
                   className="w-2/3 font-mono bg-transparent text-3xl placeholder:text-3xl focus:outline-none rounded-md bg-zinc-800 py-2"
                   type="number"
+                  value={amount}
+                  onChange={setManualTopAmountSwap}
                   placeholder="0.0001"
                 />
                 <div className="text-white cursor-pointer font-sans text-2xl">
@@ -149,7 +167,7 @@ function App() {
                   placeholder="0.0001"
                 />
                 <div className="text-white cursor-pointer font-sans text-2xl">
-                  ArbiFake
+                  DogeFake
                 </div>
                 <div className="text-4xl cursor-pointer">
                   <RiArrowDropDownLine />

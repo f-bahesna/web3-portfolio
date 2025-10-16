@@ -55,7 +55,7 @@ const ModalAddToken = ({ isVisible, onClose }) => {
     <ModalWrapper
       isVisible={isVisible}
       onClose={onClose}
-      title="Add token to your wallet"
+      title="Import token to your wallet"
     >
       <div className="bg-[#00df9a] p-2 rounded">
         {tokens.map((token) => (
@@ -65,11 +65,12 @@ const ModalAddToken = ({ isVisible, onClose }) => {
           >
             <div className="text-2xl text-black">{token.title}</div>
             <button
+              className="bg-black p-2 px-4 rounded-md hover:bg-[#016244]"
               onClick={() =>
                 addTokenToWallet(token.id, token.ticker, token.address)
               }
             >
-              {loading === token.id ? "loading..." : "Add"}
+              {loading === token.id ? "Processing..." : "Import Token"}
             </button>
           </div>
         ))}
