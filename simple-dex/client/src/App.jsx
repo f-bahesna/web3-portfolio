@@ -61,7 +61,6 @@ function App() {
 
       setStatus("Token Approved...");
     } catch (error) {
-      console.error("approving failed:", error);
       setStatus("Approving failed...");
       alert("approving failed | Transaction reverted");
       resetStatus();
@@ -76,8 +75,6 @@ function App() {
 
       setStatus("Swap completed...");
     } catch (error) {
-      console.error("Swap failed:", error);
-
       setStatus("Swap failed...");
       alert("swap failed | Transaction reverted");
       resetStatus();
@@ -97,35 +94,41 @@ function App() {
   };
 
   return (
-    <div className="my-8 p-8 bg-black text-white border border-double rounded-md">
-      <p>Connected Account: {account}</p>
-      <p>Rate : 1 Arbifake = {rate} DogeFake</p>
-
-      <p className="py-4">You Have</p>
-      <p>ArbiFake = {userBalance.arbi} AFAKE</p>
-      <p>DogeFake = {userBalance.doge} DFAKE</p>
-      <p className="py-3">Status : {status}</p>
-      <div className="py-4">
-        <input
-          className="border py-2 rounded-md text-center"
-          type="number"
-          placeholder="Amount of ArbiFake"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-        />
+    <>
+      <div className="flex justify-center items-center">
+        <div className="min-w-2.5 sm:w-24 sm:min-w-fit my-8 p-5 bg-black text-white border border-double rounded-md">
+          <p className="truncate">Connected Account: {account}</p>
+          <p>Rate : 1 Arbifake = {rate} DogeFake</p>
+          <p className="py-4">You Have</p>
+          <p>ArbiFake = {userBalance.arbi} AFAKE</p>
+          <p>DogeFake = {userBalance.doge} DFAKE</p>
+          <p className="py-3">Status : {status}</p>
+          <div className="py-4">
+            <input
+              className="border py-2 rounded-md text-center"
+              type="number"
+              placeholder="Amount of ArbiFake"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+          </div>
+          <button
+            disabled={isDisabled || loading}
+            className={isDisabled ? "opacity-25" : "opacity-100"}
+            onClick={swapArbiToDoge}
+          >
+            {loading ? (
+              "Loading..."
+            ) : (
+              <>
+                Swap ArbiFake {<LuArrowLeftRight className="mx-auto" />}{" "}
+                DogeFake
+              </>
+            )}
+          </button>
+        </div>
       </div>
-      <button
-        disabled={isDisabled || loading}
-        className={isDisabled ? "opacity-25" : "opacity-100"}
-        onClick={swapArbiToDoge}
-      >
-        {loading ? (
-          "Loading..."
-        ) : (
-          <>Swap ArbiFake {<LuArrowLeftRight className="mx-auto" />} DogeFake</>
-        )}
-      </button>
-    </div>
+    </>
   );
 }
 

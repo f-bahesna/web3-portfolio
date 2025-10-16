@@ -1,6 +1,7 @@
 import { useState } from "react";
 import ModalAddToken from "./components/ModalAddToken";
 import ModalFaucet from "./components/ModalFaucet";
+import { IoIosLogOut } from "react-icons/io";
 
 const Navbar = () => {
   const [nav, setNav] = useState(false);
@@ -27,18 +28,23 @@ const Navbar = () => {
   };
 
   return (
-    <div className="bg-black rounded-lg flex justify-between items-center h-24 max-w-[1240px] mx-auto px-4 text-white">
-      <h1 className="w-full text-1xl font-bold text-[#00df9a]">SimpleDEX</h1>
-      <ul className="hidden md:flex">
+    <div className="bg-black rounded-lg flex justify-center sm:justify-between items-center h-24 max-w-[1240px] px-4 text-white">
+      <h1 className="text-1xl sm:block font-bold text-[#00df9a] cursor-default">
+        SimpleDEX
+      </h1>
+      <ul className="hidden sm:flex">
         {navItems.map((item) => (
           <li
             key={item.id}
             onClick={() => handleNavClick(item)}
-            className="p-4 hover:bg-[#00df9a] rounded-xl m-2 cursor-pointer duration-300 hover:text-black"
+            className="p-4 hover:bg-[#00df9a] font-mono rounded-xl m-2 cursor-pointer duration-300 hover:text-black"
           >
             {item.text}
           </li>
         ))}
+        <li className="p-4 text-2xl hover:text-[#00df9a] rounded-xl m-2 cursor-pointer duration-300">
+          <IoIosLogOut />
+        </li>
       </ul>
       {showModalAddToken && (
         <ModalAddToken
