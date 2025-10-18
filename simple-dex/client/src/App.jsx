@@ -1,8 +1,9 @@
 import "./App.css";
 import { useEffect, useState } from "react";
-import { initWeb3 } from "./utils/web3config";
+import { initWeb3, TOKENS } from "./utils/web3config";
 import { LuArrowLeftRight } from "react-icons/lu";
 import { RiArrowDropDownLine } from "react-icons/ri";
+import ModalSelectToken from "./components/ModalSelectToken";
 
 initWeb3();
 
@@ -19,6 +20,10 @@ function App() {
     doge: "0",
   });
 
+  const [showModalSelectToken, SetShowModalSelectToken] = useState(false);
+  const [selectedToken, setSelectedToken] = useState(TOKENS[0]);
+  const [pair, setPair] = useState();
+
   const [isMax, setIsMax] = useState(false);
 
   const isDisabled = !amount || Number(amount) <= 0;
@@ -27,7 +32,7 @@ function App() {
     loadAccount();
 
     window.ethereum.on("accountsChanged", loadAccount);
-  }, []);
+  }, [selectedToken]);
 
   const loadAccount = async () => {
     const { web3, accounts, contracts } = await initWeb3();
@@ -54,6 +59,13 @@ function App() {
     localStorage.setItem("account", accounts[0]);
   };
 
+  const resetStatus = async () => {
+    setTimeout(() => {
+      setStatus("");
+    }, 5000);
+  };
+
+  //SWAP FUNCTION
   const swapArbiToDoge = async () => {
     setLoading(true);
     const value = web3.utils.toWei(amount, "ether");
@@ -93,35 +105,36 @@ function App() {
     setAmount(0);
   };
 
-  const resetStatus = async () => {
-    setTimeout(() => {
-      setStatus("");
-    }, 5000);
-  };
-
-  const setMaxTopAmountSwap = () => {
+  const setMaxAmountSwap = () => {
     setAmount(userBalance.arbi);
     setIsMax(true);
   };
 
-  const setManualTopAmountSwap = (e) => {
+  const setManualAmountSwap = (e) => {
     const value = e.target.value;
     setAmount(value);
     setIsMax(false);
   };
 
+  const handleSelectedToken = (tokenId) => {
+    const findTokenById = TOKENS.find((token) => token.id === Number(tokenId));
+    setSelectedToken(findTokenById);
+
+    SetShowModalSelectToken(false);
+  };
+
   return (
     <>
       <div className="flex justify-center items-center">
-        <div className="min-w-2.5 sm:w-1/2 my-12 p-0.5 bg-black text-white border rounded-3xl">
-          <div className="flex flex-col gap-4 text-md text-foreground bg-zinc-800 rounded-3xl">
+        <div className="min-w-2.5 sm:w-1/2 my-12 p-1.5 bg-black text-white border rounded-3xl">
+          <div className="flex flex-col gap-4 text-md text-foreground bg-zinc-800 rounded-2xl">
             <div className="px-4 py-2">
               {/* top */}
               <div className="flex flex-row justify-between font-mono">
                 <p>Selling</p>
                 <div className="font-mono text-md">
                   {userBalance.arbi}
-                  <span onClick={setMaxTopAmountSwap} className="px-1">
+                  <span onClick={setMaxAmountSwap} className="px-1">
                     <a href="#">Max</a>
                   </span>
                 </div>
@@ -133,13 +146,23 @@ function App() {
                   className="w-2/3 font-mono bg-transparent text-3xl placeholder:text-3xl focus:outline-none rounded-md bg-zinc-800 py-2"
                   type="number"
                   value={amount}
-                  onChange={setManualTopAmountSwap}
+                  onChange={setManualAmountSwap}
                   placeholder="0.0001"
                 />
-                <div className="text-white cursor-pointer font-sans text-2xl">
-                  ArbiFake
+                <div
+                  onClick={() => {
+                    SetShowModalSelectToken(true);
+                  }}
+                  className="text-white cursor-pointer font-sans text-2xl"
+                >
+                  {selectedToken.label}
                 </div>
-                <div className="text-4xl cursor-pointer">
+                <div
+                  onClick={() => {
+                    SetShowModalSelectToken(true);
+                  }}
+                  className="text-4xl cursor-pointer"
+                >
                   <RiArrowDropDownLine />
                 </div>
               </div>
@@ -166,11 +189,11 @@ function App() {
                   type="number"
                   placeholder="0.0001"
                 />
-                <div className="text-white cursor-pointer font-sans text-2xl">
-                  DogeFake
+                <div className="text-white font-sans text-2xl">
+                  {selectedToken.pairs[0].label}
                 </div>
-                <div className="text-4xl cursor-pointer">
-                  <RiArrowDropDownLine />
+                <div className="text-4xl mr-8">
+                  {/* <RiArrowDropDownLine /> */}
                 </div>
               </div>
               {/* end center */}
@@ -196,6 +219,13 @@ function App() {
           </button>
         </div>
       </div>
+      <ModalSelectToken
+        isVisible={showModalSelectToken}
+        onClose={() => SetShowModalSelectToken(false)}
+        baseTokens={TOKENS}
+        onDataSend={handleSelectedToken}
+        selectedToken={selectedToken}
+      />
     </>
   );
 }

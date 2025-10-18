@@ -47,3 +47,34 @@ export const getFaucet = async (ticker, address, abi) => {
         alert("faucet failed: you already claimed tokens");
     }
 }
+
+export const TOKENS = [
+    {
+      id: 1,
+      label: "ArbiFake",
+      ticker: 'AFAKE',
+      address: NEW_ARBIFAKE_ADDRESS,
+      balance: 0,
+      pairs: [
+        {
+            label: "DogeFake",
+            ticker: 'DFAKE',
+            address: NEW_DOGEFAKE_ADDRESS,
+        }
+      ]
+    },
+    {
+      id: 2,
+      label: "DogeFake",
+      ticker: 'DFAKE',
+      address: NEW_DOGEFAKE_ADDRESS,
+      balance: 0,
+      pairs: [
+        {
+            label: "ArbiFake",
+            ticker: 'AFAKE',
+            address: NEW_ARBIFAKE_ADDRESS,
+        }
+      ],
+    }
+  ];
