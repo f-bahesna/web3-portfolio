@@ -67,6 +67,11 @@ function App() {
 
   //SWAP FUNCTION
   const swapArbiToDoge = async () => {
+    if (selectedToken.ticker === "DFAKE") {
+      alert("The pair still in maintenance");
+      return;
+    }
+
     setLoading(true);
     const value = web3.utils.toWei(amount, "ether");
 
@@ -84,6 +89,7 @@ function App() {
       resetStatus();
       setLoading(false);
       setAmount(0);
+      return;
     }
 
     try {
@@ -106,12 +112,29 @@ function App() {
   };
 
   const setMaxAmountSwap = () => {
-    setAmount(userBalance.arbi);
+    setAmount(
+      selectedToken.ticker === "AFAKE" ? userBalance.arbi : userBalance.doge
+    );
     setIsMax(true);
   };
 
   const setManualAmountSwap = (e) => {
-    const value = e.target.value;
+    let value = e.target.value;
+
+    if (selectedToken.ticker === "AFAKE") {
+      if (Number(value) > Number(userBalance.arbi)) {
+        alert("Insufficient Balance");
+        value = "";
+      }
+    }
+
+    if (selectedToken.ticker === "DFAKE") {
+      if (Number(value) > Number(userBalance.doge)) {
+        alert("Insufficient Balance");
+        value = "";
+      }
+    }
+
     setAmount(value);
     setIsMax(false);
   };
@@ -119,6 +142,11 @@ function App() {
   const handleSelectedToken = (tokenId) => {
     const findTokenById = TOKENS.find((token) => token.id === Number(tokenId));
     setSelectedToken(findTokenById);
+    if (isMax) {
+      setAmount(
+        findTokenById.ticker === "AFAKE" ? userBalance.arbi : userBalance.doge
+      );
+    }
 
     SetShowModalSelectToken(false);
   };
@@ -126,14 +154,16 @@ function App() {
   return (
     <>
       <div className="flex justify-center items-center">
-        <div className="min-w-2.5 sm:w-1/2 my-12 p-1.5 bg-black text-white border rounded-3xl">
+        <div className="min-w-2.5 sm:w-4/5 md:w-1/2 my-12 p-1.5 bg-black text-white border rounded-3xl">
           <div className="flex flex-col gap-4 text-md text-foreground bg-zinc-800 rounded-2xl">
             <div className="px-4 py-2">
               {/* top */}
               <div className="flex flex-row justify-between font-mono">
                 <p>Selling</p>
                 <div className="font-mono text-md">
-                  {userBalance.arbi}
+                  {selectedToken.ticker === "AFAKE"
+                    ? userBalance.arbi
+                    : userBalance.doge}
                   <span onClick={setMaxAmountSwap} className="px-1">
                     <a href="#">Max</a>
                   </span>
@@ -185,7 +215,8 @@ function App() {
               <div className="flex flex-row items-center justify-between rounded-md py-2">
                 <input
                   disabled
-                  className="w-2/3 font-mono bg-transparent placeholder:text-2xl rounded-md bg-black py-2"
+                  className="w-2/3 font-mono bg-transparent text-3xl placeholder:text-2xl rounded-md bg-black py-2"
+                  value={amount * Number(rate)}
                   type="number"
                   placeholder="0.0001"
                 />
@@ -231,20 +262,3 @@ function App() {
 }
 
 export default App;
-
-{
-  /* <p className="truncate">Connected Account: {account}</p>
-          <p>Rate : 1 Arbifake = {rate} DogeFake</p>
-          <p className="py-4">You Have</p>
-          <p>ArbiFake = {userBalance.arbi} AFAKE</p>
-          <p>DogeFake = {userBalance.doge} DFAKE</p>
-          <p className="py-3">Status : {status}</p>
-          <div className="py-4">
-            <input
-              className="border py-2 rounded-md text-center"
-              type="number"
-              placeholder="Amount of ArbiFake"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-            /> */
-}

@@ -18,7 +18,7 @@ const ModalSelectToken = ({
     <ModalWrapper isVisible={isVisible} onClose={onClose}>
       <select
         className="py-2 mx-5 rounded-md text-2xl font-mono my-4"
-        value={selectedToken.label}
+        value={selectedToken.id}
         onChange={handleChange}
       >
         {baseTokens.map((baseToken) => (
