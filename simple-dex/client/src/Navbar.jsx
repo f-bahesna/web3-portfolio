@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ModalAddToken from "./components/ModalAddToken";
 import ModalFaucet from "./components/ModalFaucet";
 import { IoIosLogOut } from "react-icons/io";
 
-const Navbar = () => {
+const Navbar = ({ account, disconnectAccount }) => {
   const [nav, setNav] = useState(false);
   const [showModalAddToken, setShowModalAddToken] = useState(false);
   const [showModalFaucet, setShowModalFaucet] = useState(false);
@@ -32,20 +32,28 @@ const Navbar = () => {
       <h1 className="text-1xl sm:block font-bold text-[#00df9a] cursor-default">
         SimpleDEX
       </h1>
-      <ul className="hidden sm:flex">
-        {navItems.map((item) => (
+      {account ? (
+        <ul className="hidden sm:flex">
+          {navItems.map((item) => (
+            <li
+              key={item.id}
+              onClick={() => handleNavClick(item)}
+              className="p-4 hover:bg-[#00df9a] font-mono rounded-xl m-2 cursor-pointer duration-300 hover:text-black"
+            >
+              {item.text}
+            </li>
+          ))}
           <li
-            key={item.id}
-            onClick={() => handleNavClick(item)}
-            className="p-4 hover:bg-[#00df9a] font-mono rounded-xl m-2 cursor-pointer duration-300 hover:text-black"
+            onClick={disconnectAccount}
+            className="p-4 text-2xl hover:text-[#00df9a] rounded-xl m-2 cursor-pointer duration-300"
           >
-            {item.text}
+            <IoIosLogOut />
           </li>
-        ))}
-        <li className="p-4 text-2xl hover:text-[#00df9a] rounded-xl m-2 cursor-pointer duration-300">
-          <IoIosLogOut />
-        </li>
-      </ul>
+        </ul>
+      ) : (
+        ""
+      )}
+
       {showModalAddToken && (
         <ModalAddToken
           isVisible={showModalAddToken}
