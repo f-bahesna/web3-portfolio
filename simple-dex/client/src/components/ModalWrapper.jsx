@@ -4,7 +4,7 @@ const ModalWrapper = ({ isVisible, onClose, title, children }) => {
   if (!isVisible) return null;
 
   return (
-    <div className="absolute top-[-400px] inset-0 backdrop-blur-sm flex justify-center items-center">
+    <div className="absolute top-[-400px] inset-0 backdrop-blur-md flex justify-center items-center">
       <div className="w-[600px] bg-[#3dad8a] flex flex-col rounded-2xl">
         <div className="text-black text-xl my-2 ml-2 justify-center cursor-pointer">
           <FaWindowClose onClick={onClose} />
