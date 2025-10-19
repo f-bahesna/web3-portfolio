@@ -57,7 +57,7 @@ const ModalAddToken = ({ isVisible, onClose }) => {
       onClose={onClose}
       title="Import token to your wallet"
     >
-      <div className="bg-[#00df9a] p-2 rounded">
+      <div className="p-2 rounded">
         {tokens.map((token) => (
           <div
             key={token.id}

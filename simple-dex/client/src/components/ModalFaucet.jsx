@@ -43,7 +43,7 @@ const ModalFaucet = ({ isVisible, onClose }) => {
       onClose={onClose}
       title="Get Faucet Tokens"
     >
-      <div className="bg-[#00df9a] p-2 rounded">
+      <div className="p-2 relative z-10 rounded">
         {tokens.map((token) => (
           <div
             key={token.id}
