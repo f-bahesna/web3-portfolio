@@ -65,6 +65,7 @@ const ModalAddToken = ({ isVisible, onClose }) => {
           >
             <div className="text-2xl text-black">{token.title}</div>
             <button
+              disabled={loading}
               className="bg-black p-2 px-4 rounded-md hover:bg-[#016244]"
               onClick={() =>
                 addTokenToWallet(token.id, token.ticker, token.address)

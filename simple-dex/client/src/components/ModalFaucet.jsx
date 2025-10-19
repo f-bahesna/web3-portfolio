@@ -50,6 +50,7 @@ const ModalFaucet = ({ isVisible, onClose }) => {
             className="flex justify-around items-center font-mono py-2"
           >
             <button
+              disabled={loading}
               className="bg-black p-2 px-4 rounded-md hover:bg-[#016244]"
               onClick={() =>
                 addTokenFaucetToWallet(
