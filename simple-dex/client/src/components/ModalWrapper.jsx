@@ -9,12 +9,12 @@ const ModalWrapper = ({ isVisible, onClose, title, children }) => {
         <div className="text-black text-xl my-2 ml-2 justify-center cursor-pointer">
           <FaWindowClose onClick={onClose} />
         </div>
-        <div className="p-2 bg-[#5fc1a2] ">
+        <div className="p-2 bg-[#329072]">
           <div className="text-2xl font-mono font-bold capitalize text-black">
             {title}
           </div>
         </div>
-        <div className="bg-[#5fc1a2] rounded-xl">{children}</div>
+        <div className="bg-[#329072] rounded-b-2xl">{children}</div>
       </div>
     </div>
   );
