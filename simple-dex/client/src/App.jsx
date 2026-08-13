@@ -196,10 +196,17 @@ function App() {
   const handleSelectedToken = (tokenId) => {
     const findTokenById = TOKENS.find((token) => token.id === Number(tokenId));
     setSelectedToken(findTokenById);
+
+    const newBalance =
+      findTokenById.ticker === "AFAKE" ? userBalance.arbi : userBalance.doge;
+
     if (isMax) {
-      setAmount(
-        findTokenById.ticker === "AFAKE" ? userBalance.arbi : userBalance.doge
-      );
+      setAmount(newBalance);
+    } else if (Number(amount) > Number(newBalance)) {
+      // The previously entered amount no longer fits the newly selected
+      // token's balance; clear it instead of letting the user submit a
+      // swap that will always revert on-chain after wasting gas on approve.
+      setAmount("");
     }
 
     SetShowModalSelectToken(false);
