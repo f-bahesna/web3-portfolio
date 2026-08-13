@@ -1,0 +1,1 @@
+read ~/.claude/memory/gnhf24hours.md
