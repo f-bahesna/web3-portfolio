@@ -29,11 +29,11 @@ const ModalAddToken = ({ isVisible, onClose }) => {
       if (added) {
         console.log("Token added!");
         alert(`${ticker} successfully added to Metamask!`);
-        setLoading(null);
       }
     } catch (error) {
       console.log(error);
-      setLoading(false);
+    } finally {
+      setLoading(null);
     }
   };
 

@@ -119,3 +119,16 @@ Objective: see .gnhf/runs/read-claude-memory-g-291bd4/prompt.md
 **Learnings:**
 - The App.jsx mount-time useEffect that wires up wallet auto-reconnect had `[selectedToken]` as its dependency array for no functional reason (loadAccount doesn't use selectedToken at all) — this meant every token switch in the UI silently accumulated another 'accountsChanged' listener on window.ethereum and re-ran the initial connect/balance-fetch flow, a real (if subtle) memory-leak and redundant-RPC-call bug that had been present since before iteration 3 introduced token switching, but was masked because the extra listeners only visibly compound after several token switches followed by an actual account change in MetaMask.
 - Fixing the dependency array properly (rather than just changing it to `[]`) required useCallback-wrapping loadAccount and refreshBalances so the effect could legitimately depend on a stable loadAccount reference — this also happened to fully resolve the exhaustive-deps warning flagged as a known pre-existing issue in iteration 8's notes, so the project's client/ now lints with zero errors AND zero warnings for the first time in this run's history.
+
+### Iteration 10
+
+**Summary:** Removed dead `claimed` mapping state from both faucet token contracts and replaced a private web3.js internal field access (`_address`) with the public `options.address` API in the frontend swap flow, verified via full forge test suite (17 passing) and clean npm lint/build.
+
+**Changes:**
+- Removed the write-only, never-read `claimed` mapping from both ArbiFake.sol and DogeFake.sol faucet contracts — it was set on every faucet() call but never queried anywhere (not in the contracts, tests, or frontend), so it was pure dead state costing an extra SSTORE per claim with zero functional benefit; faucet cooldown logic already relies entirely on `lastClaim`.
+- Replaced `contracts.dex._address` with `contracts.dex.options.address` in client/src/App.jsx's swap approval call — `_address` is web3.js v4's internal/private contract field (only accessible because JS doesn't enforce the underscore convention), while `.options.address` is the documented public API for the same value.
+
+**Learnings:**
+- ArbiFake.sol and DogeFake.sol both had an unused `mapping(address => bool) public claimed` that was written in faucet() but never read by any contract, test, or frontend code — a straightforward dead-code removal that reduces gas cost and storage footprint with zero behavior change, verified via grep across .sol/.jsx/.js files repo-wide before removing.
+- client/src/App.jsx used `contracts.dex._address` (a web3.js v4 internal field, confirmed by inspecting node_modules/web3-eth-contract/lib/commonjs/contract.js) instead of the public `contracts.dex.options.address` getter that wraps the same underlying `_address` value — functionally identical today but relies on an undocumented internal property that could break on a web3.js internals change; switched to the public API for robustness/readability.
+- After 9 prior iterations focused on fund-loss bugs and frontend staleness/lint issues, the remaining low-risk, verifiable improvements in this codebase are smaller readability/dead-code items rather than new bugs — the SimpleDEX.sol contract and App.jsx swap flow appear to have no further correctness issues on inspection this iteration.
