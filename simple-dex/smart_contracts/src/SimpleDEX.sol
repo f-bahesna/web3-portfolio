@@ -68,8 +68,8 @@ contract SimpleDEX {
 
     function swapDogeToArbi(uint dogeAmount) external {
     // Function to swap dogeFake tokens for arbiFake tokens
-        uint256 arbiAmount = dogeAmount * rate;
-        // Calculate the equivalent arbiFake amount based on the rate
+        uint256 arbiAmount = dogeAmount / rate;
+        // Calculate the equivalent arbiFake amount based on the rate (inverse of swapArbiToDoge)
 
         require(arbiFake.balanceOf(address(this)) >= arbiAmount, "Not enought arbiFake in DEX");
         // Ensure the DEX contract has enough arbiFake to send to the user
