@@ -132,3 +132,15 @@ Objective: see .gnhf/runs/read-claude-memory-g-291bd4/prompt.md
 - ArbiFake.sol and DogeFake.sol both had an unused `mapping(address => bool) public claimed` that was written in faucet() but never read by any contract, test, or frontend code — a straightforward dead-code removal that reduces gas cost and storage footprint with zero behavior change, verified via grep across .sol/.jsx/.js files repo-wide before removing.
 - client/src/App.jsx used `contracts.dex._address` (a web3.js v4 internal field, confirmed by inspecting node_modules/web3-eth-contract/lib/commonjs/contract.js) instead of the public `contracts.dex.options.address` getter that wraps the same underlying `_address` value — functionally identical today but relies on an undocumented internal property that could break on a web3.js internals change; switched to the public API for robustness/readability.
 - After 9 prior iterations focused on fund-loss bugs and frontend staleness/lint issues, the remaining low-risk, verifiable improvements in this codebase are smaller readability/dead-code items rather than new bugs — the SimpleDEX.sol contract and App.jsx swap flow appear to have no further correctness issues on inspection this iteration.
+
+### Iteration 11
+
+**Summary:** Fixed a stuck 'Processing...' UI bug in ModalAddToken.jsx where rejecting the MetaMask add-token prompt left the loading state permanently set, by moving the reset into a finally block.
+
+**Changes:**
+- Fixed a stuck-loading UI bug in client/src/components/ModalAddToken.jsx: `wallet_watchAsset` resolves to `false` (not a thrown error) when the user rejects the 'Add token to MetaMask' prompt, so the old code's `if (added) { ...; setLoading(null); }` never reset the loading state on rejection, permanently freezing that token's button on 'Processing...' (state persists across the isVisible early-return since the component stays mounted). Moved `setLoading(null)` into a `finally` block so it always resets regardless of approval, rejection, or error.
+
+**Learnings:**
+- ModalAddToken.jsx's addTokenToWallet had the same class of stuck-loading bug as prior iterations' UI fixes, but triggered by a resolved-false value rather than a thrown exception: MetaMask's wallet_watchAsset resolves `false` on user rejection instead of throwing, so a try/catch alone doesn't cover the reset path -- only a finally (or resetting outside the if) does.
+- ModalFaucet.jsx's analogous addTokenFaucetToWallet does NOT have this bug: getFaucet() in web3config.js already wraps its logic in its own internal try/catch and never rethrows, so ModalFaucet's outer `setLoading(null)` after the await always runs regardless of faucet success/failure/rejection.
+- Reviewed SimpleDEX.sol, ArbiFake.sol, App.jsx, and all Modal*.jsx components this iteration; no further correctness bugs found on inspection beyond this one -- remaining candidates for future iterations are likely readability/structure (e.g. vite's 665kB single-chunk bundle warning, or extracting the swap-flow into smaller hooks) rather than new functional bugs.

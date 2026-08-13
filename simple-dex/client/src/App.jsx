@@ -6,8 +6,6 @@ import { RiArrowDropDownLine } from "react-icons/ri";
 import ModalSelectToken from "./components/ModalSelectToken";
 import Navbar from "./Navbar.jsx";
 
-initWeb3();
-
 function App() {
   const [account, setAccount] = useState(null);
   const [contracts, setContracts] = useState("");
