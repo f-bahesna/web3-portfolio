@@ -157,3 +157,16 @@ Objective: see .gnhf/runs/read-claude-memory-g-291bd4/prompt.md
 - Confirmed via `git log -p --follow` that this stray top-level `initWeb3();` call has existed since the very first commit of App.jsx, so it was an original design artifact (likely a leftover initialization attempt) rather than something introduced by a prior iteration.
 - Confirmed via grep that web3config.js's module-scoped `web3`/`accounts`/`contracts` variables (mutated inside initWeb3) are never read anywhere else in the codebase, so the discarded top-level call had zero functional dependents and was safe to delete outright.
 - npm run lint (0 errors/warnings) and npm run build (vite build succeeds, same pre-existing 665kB single-chunk warning noted in earlier iterations) both pass after the removal, confirming no regression.
+
+### Iteration 13
+
+**Summary:** Fixed a crash bug where clicking "Connect Metamask" without MetaMask installed threw an uncaught TypeError from destructuring undefined, instead of just showing the install alert.
+
+**Changes:**
+- Made client/src/utils/web3config.js's initWeb3() explicitly return null when window.ethereum is missing, instead of implicitly returning undefined after alerting.
+- Guarded client/src/App.jsx's loadAccount() to check the initWeb3() result before destructuring it, returning early (without ever setting loading=true) when MetaMask isn't installed, instead of crashing with an uncaught TypeError.
+
+**Learnings:**
+- initWeb3()'s no-MetaMask branch only ever alerted and fell off the end of the function (implicit undefined return); every caller destructured its result unconditionally, so this path was a latent crash bug from the start, only reachable via the manual 'Connect Metamask' button since the auto-reconnect useEffect already separately guards on window.ethereum before calling loadAccount.
+- Returning early before setLoading(true) in loadAccount is strictly better than the alternative of setting loading then resetting it, since it avoids ever showing a 'Connecting...' state that would never resolve.
+- npm run lint and npm run build both remain clean (0 errors/warnings) after this fix, consistent with iterations 9-12's established baseline.
