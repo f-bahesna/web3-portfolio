@@ -219,6 +219,12 @@ function App() {
     SetShowModalSelectToken(false);
   };
 
+  const handleFlipTokens = () => {
+    const pairTicker = selectedToken.pairs[0].ticker;
+    const pairToken = TOKENS.find((token) => token.ticker === pairTicker);
+    handleSelectedToken(pairToken.id);
+  };
+
   return (
     <>
       <Navbar
@@ -277,6 +283,16 @@ function App() {
                     $0.001
                   </div>
                 </div>
+              </div>
+              <div className="flex justify-center -my-3 relative z-10">
+                <button
+                  type="button"
+                  onClick={handleFlipTokens}
+                  aria-label="Flip sell and buy tokens"
+                  className="rotate-90 text-2xl text-white bg-zinc-800 hover:bg-zinc-700 border-4 border-black rounded-full p-1.5 cursor-pointer transition-colors duration-300"
+                >
+                  <LuArrowLeftRight />
+                </button>
               </div>
               <div className="flex flex-col gap-4 text-md text-foreground bg-black rounded-3xl">
                 <div className="px-4 py-2">

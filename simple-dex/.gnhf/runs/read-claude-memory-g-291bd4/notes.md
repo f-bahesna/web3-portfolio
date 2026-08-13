@@ -233,3 +233,15 @@ Objective: see .gnhf/runs/read-claude-memory-g-291bd4/prompt.md
 - handleSelectedToken's balance-sync logic was gated entirely on the isMax flag; a manually typed amount (not via the Max button) that happened to fit the previously selected token's balance was never re-validated after a token switch, so a user could unknowingly submit a swap for more than they hold in the newly selected token -- the on-chain swap would fail (ERC20 insufficient balance in transferFrom) only after a real, gas-costing approve transaction already succeeded.
 - This complements setManualAmountSwap's existing at-input-time balance validation (iteration predates this run) -- that check only fires while typing in the currently selected token; it had no equivalent safeguard for the token-switch path, which is the gap this iteration closes.
 - After 18 iterations, App.jsx's core swap/connect/faucet flows and all Modal*.jsx components continue to have no further correctness bugs found on inspection beyond small edge cases like this one; npm run lint (0 errors/warnings) and npm run build remain clean, consistent with the baseline established since iteration 9.
+
+### Iteration 19
+
+**Summary:** Fixed a balance-staleness bug where claiming tokens from the faucet never refreshed the displayed swap-page balances, requiring a reconnect to see newly received tokens.
+
+**Changes:**
+- Wired refreshBalances into the faucet claim flow: App.jsx now passes a handleFaucetClaimed callback down through Navbar to ModalFaucet, which calls it after getFaucet() resolves so the swap page's displayed 'Selling'/'Max' balances update immediately after a successful faucet claim instead of only refreshing on reconnect/account-change.
+
+**Learnings:**
+- Iteration 8 fixed post-swap balance staleness but never touched the faucet flow, which had the identical bug: ModalFaucet (rendered inside Navbar) had no access to App.jsx's refreshBalances helper, so getFaucet() succeeding never updated userBalance state - confirmed via grep showing refreshBalances was only referenced in App.jsx and never passed as a prop anywhere.
+- Chose to call the refresh callback unconditionally after getFaucet() resolves (rather than trying to detect success) since getFaucet already swallows all errors internally via try/catch and never rethrows - refreshing balances after a failed claim is a harmless no-op read, so no extra success-signaling plumbing was needed.
+- npm run lint (0 errors/warnings) and npm run build remain clean after this change, consistent with the zero-issue baseline established since iteration 9.
