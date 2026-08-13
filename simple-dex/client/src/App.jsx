@@ -28,6 +28,11 @@ function App() {
 
   const isDisabled = !amount || Number(amount) <= 0;
 
+  const buyAmount =
+    selectedToken.ticker === "AFAKE"
+      ? Number(amount || 0) * Number(rate)
+      : Number(amount || 0) / Number(rate || 1);
+
   useEffect(() => {
     let localAccount = localStorage.getItem("account");
 
@@ -81,11 +86,12 @@ function App() {
   };
 
   //SWAP FUNCTION
-  const swapArbiToDoge = async () => {
-    if (selectedToken.ticker === "DFAKE") {
-      alert("The pair still in maintenance");
-      return;
-    }
+  const handleSwap = async () => {
+    const sellingArbi = selectedToken.ticker === "AFAKE";
+    const sellToken = sellingArbi ? contracts.arbiFake : contracts.dogeFake;
+    const swapMethod = sellingArbi
+      ? contracts.dex.methods.swapArbiToDoge
+      : contracts.dex.methods.swapDogeToArbi;
 
     setLoading(true);
     const value = web3.utils.toWei(amount, "ether");
@@ -93,7 +99,7 @@ function App() {
     try {
       setStatus("Approving tokens...");
 
-      await contracts.arbiFake.methods
+      await sellToken.methods
         .approve(contracts.dex._address, value)
         .send({ from: account });
 
@@ -110,7 +116,7 @@ function App() {
     try {
       setStatus("Swapping tokens...");
 
-      await contracts.dex.methods.swapArbiToDoge(value).send({ from: account });
+      await swapMethod(value).send({ from: account });
 
       setStatus("Swap completed...");
     } catch (error) {
@@ -234,7 +240,7 @@ function App() {
                     <input
                       disabled
                       className="w-2/3 font-mono bg-transparent text-3xl placeholder:text-2xl rounded-md bg-black py-2"
-                      value={amount * Number(rate)}
+                      value={buyAmount}
                       type="number"
                       placeholder="0.0001"
                     />
@@ -256,7 +262,7 @@ function App() {
 
           <div className="flex justify-center items-center">
             <div
-              onClick={!isDisabled ? swapArbiToDoge : undefined}
+              onClick={!isDisabled ? handleSwap : undefined}
               className={`bg-[#3dad8a] hover:bg-[#47cfa4] transition-colors duration-300 text-2xl rounded-2xl w-full sm:w-1/2 cursor-pointer ${
                 isDisabled ? "opacity-25 pointer-events-none" : "opacity-100"
               }`}
