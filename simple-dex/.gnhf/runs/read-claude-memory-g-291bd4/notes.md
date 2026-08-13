@@ -64,3 +64,18 @@ Objective: see .gnhf/runs/read-claude-memory-g-291bd4/prompt.md
 - The swapDogeToArbi truncation bug was a real, previously-untested edge case: with RATE=5, swapping dogeAmount in [1,4] wei succeeded, took the full dogeAmount from the user, and paid out 0 arbiFake -- a genuine (if small) fund-loss bug that the iteration-2 test suite didn't cover despite testing both swap directions and revert paths.
 - Confirmed the lib/ install + cleanup workflow from iteration 2's notes still applies exactly as documented: `forge install foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts@v5.4.0` from smart_contracts/ is needed to run `forge build`/`forge test` (no deps are committed), and afterward `rm -rf smart_contracts/lib` plus removing the stray `.gitmodules` one directory above the repo (at .../web3/.gitmodules, since simple-dex isn't the git root) and `git restore --staged`/`git restore` on foundry.lock is required to keep the diff clean.
 - forge build/forge test both emit pre-existing erc20-unchecked-transfer and mixed-case-variable lint warnings (unrelated to this change, from test setup helpers and an unrelated script) -- these are warnings only, not build failures, and were not touched in this iteration to keep scope minimal.
+
+### Iteration 6
+
+**Summary:** Fixed a fund-loss bug in SimpleDEX where setting rate to 0 (via constructor or setRate) would let swapArbiToDoge take a user's arbiFake while paying out 0 dogeFake, and added regression tests.
+
+**Changes:**
+- Added require(_rate > 0, "Rate must be positive") to SimpleDEX's constructor, preventing deployment with a zero rate.
+- Added the same require check to setRate, preventing the owner from ever setting rate to 0.
+- Documented via inline comment why a zero rate was dangerous specifically for swapArbiToDoge (arbiAmount * 0 = 0 passes the dogeFake balance check and silently takes the user's arbiFake for nothing), while swapDogeToArbi was already implicitly protected since division by zero reverts on its own in Solidity 0.8.
+- Added testSetRateRevertsWhenZero and testConstructorRevertsWhenRateIsZero regression tests to smart_contracts/test/SimpleDEX.t.sol.
+- Verified full suite (16 tests across 3 files) passes and forge build succeeds; cleaned up the temporary lib/ install and stray outer .gitmodules per the documented workaround so the git diff stays limited to source/test changes.
+
+**Learnings:**
+- swapArbiToDoge and swapDogeToArbi were asymmetrically protected against a zero rate: division by zero always reverts in Solidity 0.8+, so swapDogeToArbi (dogeAmount / rate) was already safe, but multiplication by zero does not revert, so swapArbiToDoge (arbiAmount * rate) would silently pass a rate=0 state and take the user's arbiFake for a 0 dogeFake payout -- an owner-triggered but real fund-loss path that no prior iteration's test suite covered.
+- The lib/ install + cleanup workflow documented in iterations 2 and 5 continues to work exactly as described: forge install foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts@v5.4.0 from smart_contracts/, then after testing rm -rf smart_contracts/lib, rm the stray .gitmodules one directory above simple-dex, and git restore --staged/git restore on foundry.lock to keep the diff clean.

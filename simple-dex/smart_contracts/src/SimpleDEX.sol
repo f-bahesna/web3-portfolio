@@ -59,6 +59,6 @@ contract SimpleDEX {
     }
 
     function withdraw(address token, uint256 amount) external onlyOwner {
-        IERC20(token).transfer(owner, amount);
+        require(IERC20(token).transfer(owner, amount), "Withdraw transfer failed");
     }
 }

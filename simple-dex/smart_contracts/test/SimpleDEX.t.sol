@@ -6,6 +6,14 @@ import "../src/SimpleDEX.sol";
 import "../src/ArbiFake.sol";
 import "../src/DogeFake.sol";
 
+// A non-standard ERC20 that signals failure by returning false instead of
+// reverting, used to prove withdraw() checks the return value.
+contract NonRevertingFailToken {
+    function transfer(address, uint256) external pure returns (bool) {
+        return false;
+    }
+}
+
 contract SimpleDEXTest is Test {
     SimpleDEX dex;
     ArbiFake arbi;
@@ -136,5 +144,15 @@ contract SimpleDEXTest is Test {
         uint256 balanceBefore = arbi.balanceOf(owner);
         dex.withdraw(address(arbi), 1);
         assertEq(arbi.balanceOf(owner), balanceBefore + 1);
+    }
+
+    function testWithdrawRevertsWhenTransferReturnsFalse() public {
+        // Some non-standard ERC20s signal failure by returning false instead
+        // of reverting; withdraw() must check the return value so the owner
+        // isn't misled into thinking a failed withdrawal succeeded.
+        NonRevertingFailToken failToken = new NonRevertingFailToken();
+
+        vm.expectRevert(bytes("Withdraw transfer failed"));
+        dex.withdraw(address(failToken), 1);
     }
 }
