@@ -98,6 +98,19 @@ function App() {
     setAccount(null);
   };
 
+  const describeSwapError = (error, action) => {
+    if (error?.code === 4001) {
+      return `${action} was rejected in Metamask.`;
+    }
+    if (error?.message?.includes("Not enough")) {
+      return "The DEX doesn't have enough liquidity for this swap right now.";
+    }
+    if (error?.message?.includes("Amount too small to swap")) {
+      return "Amount too small to swap at the current rate.";
+    }
+    return `${action} failed: transaction reverted.`;
+  };
+
   //SWAP FUNCTION
   const handleSwap = async () => {
     const sellingArbi = selectedToken.ticker === "AFAKE";
@@ -120,7 +133,7 @@ function App() {
     } catch (error) {
       console.error(error);
       setStatus("Approving failed...");
-      alert("approving failed | Transaction reverted");
+      alert(describeSwapError(error, "Approving"));
       resetStatus();
       setLoading(false);
       setAmount(0);
@@ -137,7 +150,7 @@ function App() {
     } catch (error) {
       console.error(error);
       setStatus("Swap failed...");
-      alert("swap failed | Transaction reverted");
+      alert(describeSwapError(error, "Swap"));
     }
 
     resetStatus();

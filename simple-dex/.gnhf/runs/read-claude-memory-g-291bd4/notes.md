@@ -170,3 +170,16 @@ Objective: see .gnhf/runs/read-claude-memory-g-291bd4/prompt.md
 - initWeb3()'s no-MetaMask branch only ever alerted and fell off the end of the function (implicit undefined return); every caller destructured its result unconditionally, so this path was a latent crash bug from the start, only reachable via the manual 'Connect Metamask' button since the auto-reconnect useEffect already separately guards on window.ethereum before calling loadAccount.
 - Returning early before setLoading(true) in loadAccount is strictly better than the alternative of setting loading then resetting it, since it avoids ever showing a 'Connecting...' state that would never resolve.
 - npm run lint and npm run build both remain clean (0 errors/warnings) after this fix, consistent with iterations 9-12's established baseline.
+
+### Iteration 14
+
+**Summary:** Fixed a misleading error-message bug in the faucet flow where every failure (including a plain MetaMask rejection or network error) was reported to the user as 'you already claimed tokens', regardless of the actual cause.
+
+**Changes:**
+- Fixed misleading faucet error handling in client/src/utils/web3config.js: getFaucet() previously showed the same hardcoded 'faucet failed: you already claimed tokens' alert for every possible error (user rejecting the MetaMask prompt, network failures, or any other revert reason), even when the user had never claimed before. Now it distinguishes user-rejected transactions (error.code === 4001), the actual on-chain cooldown revert ('Claim once per day'), and a generic fallback for any other failure.
+- Replaced console.log(error) with console.error(error) in the same catch block for correct log-level semantics.
+
+**Learnings:**
+- ModalFaucet.jsx's getFaucet() catch block in web3config.js unconditionally alerted 'you already claimed tokens' regardless of the real error cause, confirmed by cross-referencing ArbiFake.sol's actual revert string ('Claim once per day') - a user who simply rejected the MetaMask signature prompt, or hit a network/gas error, would be told a false reason (already claimed) instead of the true one, which is misleading UX debugging-wise.
+- No frontend test framework exists in client/ (only eslint + vite build, confirmed via package.json scripts) - verification for frontend changes in this run is limited to `npm run lint` and `npm run build`, both of which remain clean (0 errors/warnings) after this fix.
+- After 13 iterations covering the major SimpleDEX/ArbiFake/DogeFake contract fund-loss bugs and App.jsx's core swap/connect flow bugs, remaining issues are smaller UX/error-message correctness bugs in secondary flows (faucet, add-token) rather than new critical bugs - worth checking ModalSelectToken.jsx and ModalAddToken.jsx's error paths next if continuing this thread.
