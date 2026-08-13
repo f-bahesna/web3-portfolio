@@ -18,3 +18,16 @@ Objective: see .gnhf/runs/read-claude-memory-g-291bd4/prompt.md
 - The frontend (client/src/App.jsx) never calls swapDogeToArbi at all currently - selecting the DFAKE pair shows 'The pair still in maintenance' - so this bug was invisible in the UI but present in the deployed/deployable contract surface.
 - `forge fmt --check` already fails repo-wide on pre-existing files (comment indentation, missing trailing newlines) unrelated to this change - worth a dedicated readability/formatting cleanup iteration later, but out of scope for this bug-fix iteration.
 - No SimpleDEX test coverage existed before this iteration; only faucet tests existed for the two ERC20 tokens.
+
+### Iteration 3
+
+**Summary:** Enabled the previously-blocked DogeFake->ArbiFake swap direction in the DEX frontend and fixed the buying-amount preview to use the correct rate math for each swap direction.
+
+**Changes:**
+- Removed the 'The pair still in maintenance' block in client/src/App.jsx that hard-blocked selling DFAKE (dogeFake); replaced the AFAKE-only swapArbiToDoge handler with a direction-aware handleSwap that approves the correct sell token (arbiFake or dogeFake) and calls the matching contract method (swapArbiToDoge or swapDogeToArbi) based on the selected token
+- Fixed the 'Buying' amount preview which always computed amount * rate regardless of swap direction (correct only for AFAKE->DFAKE); added a buyAmount value that multiplies by rate when selling AFAKE and divides by rate when selling DFAKE, matching the on-chain swap math fixed in iteration 2
+
+**Learnings:**
+- The frontend's DFAKE->AFAKE swap path was fully blocked by a hardcoded alert('The pair still in maintenance') in App.jsx, independent of the smart-contract rate bug fixed in iteration 2 -- the contract-level fix alone did not surface in the UI until this iteration wired up the second swap direction.
+- client/ has no node_modules committed; `npm install` pulls 323 packages (node_modules and dist are gitignored so this doesn't pollute git status). `npm run lint` and `npm run build` both work after install. Pre-existing eslint errors (unused 'status'/'error' vars in App.jsx, conditional hooks in ModalAddToken.jsx/ModalFaucet.jsx, unused imports in Navbar.jsx/ModalSelectToken.jsx/web3config.js/vite.config.js) exist independent of this change -- verified via git stash comparison -- and are candidates for a future dedicated lint-cleanup iteration.
+- Vite build succeeds with a single JS chunk warning (664 kB / 203 kB gzip) -- not addressed here since it's a pre-existing bundling characteristic unrelated to this feature.

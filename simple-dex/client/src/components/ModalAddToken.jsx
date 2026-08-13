@@ -6,8 +6,9 @@ const NEW_ARBIFAKE_ADDRESS = env.VITE_NEW_ARBIFAKE_ADDRESS;
 const NEW_DOGEFAKE_ADDRESS = env.VITE_NEW_DOGEFAKE_ADDRESS;
 
 const ModalAddToken = ({ isVisible, onClose }) => {
-  if (!isVisible) return null;
   const [loading, setLoading] = useState("");
+
+  if (!isVisible) return null;
 
   const addTokenToWallet = async (id, ticker, address) => {
     setLoading(id);

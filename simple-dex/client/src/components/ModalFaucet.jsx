@@ -9,8 +9,9 @@ const NEW_ARBIFAKE_ADDRESS = env.VITE_NEW_ARBIFAKE_ADDRESS;
 const NEW_DOGEFAKE_ADDRESS = env.VITE_NEW_DOGEFAKE_ADDRESS;
 
 const ModalFaucet = ({ isVisible, onClose }) => {
-  if (!isVisible) return null;
   const [loading, setLoading] = useState("");
+
+  if (!isVisible) return null;
 
   const addTokenFaucetToWallet = async (id, ticker, address, abi) => {
     setLoading(id);

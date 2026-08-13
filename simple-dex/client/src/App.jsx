@@ -105,6 +105,7 @@ function App() {
 
       setStatus("Token Approved...");
     } catch (error) {
+      console.error(error);
       setStatus("Approving failed...");
       alert("approving failed | Transaction reverted");
       resetStatus();
@@ -120,6 +121,7 @@ function App() {
 
       setStatus("Swap completed...");
     } catch (error) {
+      console.error(error);
       setStatus("Swap failed...");
       alert("swap failed | Transaction reverted");
       resetStatus();
@@ -232,7 +234,7 @@ function App() {
                   {/* top */}
                   <div className="flex flex-row justify-between font-mono">
                     <p>Buying</p>
-                    <div className="font-mono text-md">0.0001</div>
+                    <div className="font-mono text-md">{buyAmount}</div>
                   </div>
                   {/* end top */}
                   {/* center */}
@@ -275,6 +277,11 @@ function App() {
               </button>
             </div>
           </div>
+          {status && (
+            <div className="flex justify-center items-center mt-4 font-mono text-sm text-gray-300">
+              {status}
+            </div>
+          )}
         </div>
       ) : (
         <div className="flex justify-center items-center h-screen">

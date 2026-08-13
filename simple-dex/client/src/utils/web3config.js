@@ -40,7 +40,7 @@ export const getFaucet = async (ticker, address, abi) => {
         const accounts = await window.ethereum.request({ method: "eth_requestAccounts"});
         const contract = new web3.eth.Contract(abi, address);
 
-        const tx = await contract.methods.faucet().send({ from: accounts[0]});
+        await contract.methods.faucet().send({ from: accounts[0]});
         alert(`You received 10 ${ticker} tokens!`);
     } catch (error) {
         console.log(error)
