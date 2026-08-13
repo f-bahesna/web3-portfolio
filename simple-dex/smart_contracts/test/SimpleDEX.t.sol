@@ -90,7 +90,19 @@ contract SimpleDEXTest is Test {
 
         vm.startPrank(user);
         doge.approve(address(dex), dogeAmount);
-        vm.expectRevert(bytes("Not enought arbiFake in DEX"));
+        vm.expectRevert(bytes("Not enough arbiFake in DEX"));
+        dex.swapDogeToArbi(dogeAmount);
+        vm.stopPrank();
+    }
+
+    function testSwapDogeToArbiRevertsWhenAmountTruncatesToZero() public {
+        // With RATE = 5, a dogeAmount below 5 wei would truncate to 0 arbiFake,
+        // which previously let the DEX take the user's dogeFake for nothing.
+        uint256 dogeAmount = RATE - 1;
+
+        vm.startPrank(user);
+        doge.approve(address(dex), dogeAmount);
+        vm.expectRevert(bytes("Amount too small to swap"));
         dex.swapDogeToArbi(dogeAmount);
         vm.stopPrank();
     }

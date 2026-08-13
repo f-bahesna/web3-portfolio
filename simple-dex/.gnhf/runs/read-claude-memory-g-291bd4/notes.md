@@ -31,3 +31,21 @@ Objective: see .gnhf/runs/read-claude-memory-g-291bd4/prompt.md
 - The frontend's DFAKE->AFAKE swap path was fully blocked by a hardcoded alert('The pair still in maintenance') in App.jsx, independent of the smart-contract rate bug fixed in iteration 2 -- the contract-level fix alone did not surface in the UI until this iteration wired up the second swap direction.
 - client/ has no node_modules committed; `npm install` pulls 323 packages (node_modules and dist are gitignored so this doesn't pollute git status). `npm run lint` and `npm run build` both work after install. Pre-existing eslint errors (unused 'status'/'error' vars in App.jsx, conditional hooks in ModalAddToken.jsx/ModalFaucet.jsx, unused imports in Navbar.jsx/ModalSelectToken.jsx/web3config.js/vite.config.js) exist independent of this change -- verified via git stash comparison -- and are candidates for a future dedicated lint-cleanup iteration.
 - Vite build succeeds with a single JS chunk warning (664 kB / 203 kB gzip) -- not addressed here since it's a pre-existing bundling characteristic unrelated to this feature.
+
+### Iteration 4
+
+**Summary:** Fixed all 10 pre-existing ESLint errors in client/ (including two real conditional-hooks bugs and a hardcoded 'Buying' preview display bug), and wired the unused swap-status state into the UI, with lint and build both passing cleanly afterward.
+
+**Changes:**
+- Fixed React Rules-of-Hooks violations in ModalAddToken.jsx and ModalFaucet.jsx where useState was called after an early `if (!isVisible) return null` return, which could cause React to throw/misbehave when isVisible toggles across renders
+- Fixed a UI bug in App.jsx where the 'Buying' summary row always showed a hardcoded '0.0001' instead of the actual computed buyAmount for the selected swap direction
+- Wired the previously-unused `status` state in App.jsx into the UI so swap progress messages (Approving/Swapping/failed/completed) are now visible to the user instead of being silently discarded
+- Removed dead/unused code: unused `nav`/`handleNav`/`useEffect` in Navbar.jsx (leftover from an unwired mobile-nav feature), unused `useState` import and commented-out line in ModalSelectToken.jsx, unused `path` import in vite.config.js, unused `tx` assignment in web3config.js
+- Added console.error(error) logging in App.jsx's two catch blocks (approve/swap failures) instead of silently swallowing the error, fixing the last two no-unused-vars lint errors
+- client/ now passes `npm run lint` with zero errors (previously 10 errors across 7 files) and `npm run build` still succeeds
+
+**Learnings:**
+- The two react-hooks/rules-of-hooks lint errors flagged in iteration 3's notes were not just lint noise - ModalAddToken and ModalFaucet had a genuine conditional-hook bug (useState called after an early return), which is a real correctness issue since React's hook order must be identical every render for the same component instance
+- App.jsx's 'Buying' preview had two separate amount displays: the disabled input (already fixed to use buyAmount in iteration 3) and a summary row above it that was still hardcoded to '0.0001' - the iteration 3 fix was incomplete and this iteration closed that gap
+- Navbar.jsx's `nav`/`setNav`/`handleNav` were dead code for a mobile hamburger menu that was never actually wired to any button or conditional render (navItems list is always `hidden sm:flex`) - safe to delete with zero functional change
+- client/node_modules was already installed from a prior iteration's `npm install`, so lint/build could run directly without a fresh install this time
