@@ -106,3 +106,16 @@ Objective: see .gnhf/runs/read-claude-memory-g-291bd4/prompt.md
 - App.jsx's loadAccount() fetched balances on connect/account-change but handleSwap() never re-fetched them after a swap transaction succeeded, so the UI silently showed stale balances post-swap - a real data-integrity bug that could lead a user to click 'Max' and attempt to swap more than they now actually hold, risking a failed follow-up transaction.
 - handleSwap's swap-failure catch block duplicated the exact resetStatus/setLoading/setAmount cleanup that ran unconditionally right after the try/catch, meaning on swap failure those three calls fired twice - harmless (resetStatus just restarts a 5s timer) but unnecessary complexity now removed.
 - npm run lint has one pre-existing warning (react-hooks/exhaustive-deps on the useEffect missing 'loadAccount') unrelated to this change; lint (0 errors) and vite build both pass cleanly after this fix.
+
+### Iteration 9
+
+**Summary:** Fixed a MetaMask accountsChanged listener leak in App.jsx caused by a useEffect keyed on the wrong dependency, which also eliminated the last remaining ESLint warning in the client.
+
+**Changes:**
+- Fixed a MetaMask 'accountsChanged' event-listener leak in client/src/App.jsx: the useEffect that registers the listener and calls loadAccount() was keyed on `[selectedToken]` instead of running once on mount, so every time the user switched the sell/buy token in the modal, a brand-new listener was attached (never removed) and loadAccount() re-fired an extra, redundant balance/rate fetch.
+- Wrapped refreshBalances and loadAccount in useCallback (with correct dependencies) and changed the useEffect to depend on `[loadAccount]` with a cleanup function that calls window.ethereum.removeListener('accountsChanged', loadAccount), so exactly one listener exists at a time and it's properly torn down.
+- This also resolves the pre-existing react-hooks/exhaustive-deps warning noted in iteration 8's notes (previously the only lint warning in the project) — npm run lint now reports zero errors and zero warnings, and npm run build still succeeds.
+
+**Learnings:**
+- The App.jsx mount-time useEffect that wires up wallet auto-reconnect had `[selectedToken]` as its dependency array for no functional reason (loadAccount doesn't use selectedToken at all) — this meant every token switch in the UI silently accumulated another 'accountsChanged' listener on window.ethereum and re-ran the initial connect/balance-fetch flow, a real (if subtle) memory-leak and redundant-RPC-call bug that had been present since before iteration 3 introduced token switching, but was masked because the extra listeners only visibly compound after several token switches followed by an actual account change in MetaMask.
+- Fixing the dependency array properly (rather than just changing it to `[]`) required useCallback-wrapping loadAccount and refreshBalances so the effect could legitimately depend on a stable loadAccount reference — this also happened to fully resolve the exhaustive-deps warning flagged as a known pre-existing issue in iteration 8's notes, so the project's client/ now lints with zero errors AND zero warnings for the first time in this run's history.

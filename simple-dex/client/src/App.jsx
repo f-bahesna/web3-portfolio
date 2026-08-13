@@ -111,7 +111,7 @@ function App() {
       setStatus("Approving tokens...");
 
       await sellToken.methods
-        .approve(contracts.dex._address, value)
+        .approve(contracts.dex.options.address, value)
         .send({ from: account });
 
       setStatus("Token Approved...");
