@@ -12,6 +12,8 @@ contract SimpleDEX {
     event Swap(address indexed user, address fromToken, address toToken, uint256 fromAmount, uint256 toAmount);
 
     constructor(address _arbiFake, address _dogeFake, uint256 _rate) {
+        require(_rate > 0, "Rate must be positive");
+
         arbiFake = IERC20(_arbiFake);
         dogeFake = IERC20(_dogeFake);
         owner = msg.sender;
@@ -24,6 +26,11 @@ contract SimpleDEX {
     }
 
     function setRate(uint256 _rate) external onlyOwner {
+        // A zero rate would make swapArbiToDoge pay out 0 dogeFake while still
+        // taking the user's arbiFake, since arbiAmount * 0 passes the balance
+        // check with no revert (swapDogeToArbi is already protected since
+        // dividing by zero reverts on its own).
+        require(_rate > 0, "Rate must be positive");
         rate = _rate;
     }
 

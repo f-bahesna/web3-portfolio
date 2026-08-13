@@ -49,3 +49,18 @@ Objective: see .gnhf/runs/read-claude-memory-g-291bd4/prompt.md
 - App.jsx's 'Buying' preview had two separate amount displays: the disabled input (already fixed to use buyAmount in iteration 3) and a summary row above it that was still hardcoded to '0.0001' - the iteration 3 fix was incomplete and this iteration closed that gap
 - Navbar.jsx's `nav`/`setNav`/`handleNav` were dead code for a mobile hamburger menu that was never actually wired to any button or conditional render (navItems list is always `hidden sm:flex`) - safe to delete with zero functional change
 - client/node_modules was already installed from a prior iteration's `npm install`, so lint/build could run directly without a fresh install this time
+
+### Iteration 5
+
+**Summary:** Fixed a real fund-loss bug in SimpleDEX.swapDogeToArbi where integer-division truncation let users be charged dogeFake while receiving zero arbiFake, added a regression test, and simplified SimpleDEX.sol by removing redundant line-by-line comments.
+
+**Changes:**
+- Fixed a real fund-loss bug in SimpleDEX.swapDogeToArbi: integer division (dogeAmount / rate) truncates to zero when dogeAmount < rate, but the function still pulled the full dogeAmount from the user via transferFrom while paying out zero arbiFake. Added require(arbiAmount > 0, "Amount too small to swap") to revert these no-value swaps instead of silently taking user funds.
+- Fixed a typo in the insufficient-liquidity revert message ('Not enought arbiFake in DEX' -> 'Not enough arbiFake in DEX') and updated the corresponding test expectation.
+- Stripped the line-by-line restating comments from SimpleDEX.sol (every single line had a comment repeating what the code already said) per the project's readability guidance that comments should only explain non-obvious 'why', not restate 'what'. File went from 92 to ~55 lines with identical behavior.
+- Added testSwapDogeToArbiRevertsWhenAmountTruncatesToZero to smart_contracts/test/SimpleDEX.t.sol proving a dogeAmount below `rate` now reverts instead of silently zeroing out the payout.
+
+**Learnings:**
+- The swapDogeToArbi truncation bug was a real, previously-untested edge case: with RATE=5, swapping dogeAmount in [1,4] wei succeeded, took the full dogeAmount from the user, and paid out 0 arbiFake -- a genuine (if small) fund-loss bug that the iteration-2 test suite didn't cover despite testing both swap directions and revert paths.
+- Confirmed the lib/ install + cleanup workflow from iteration 2's notes still applies exactly as documented: `forge install foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts@v5.4.0` from smart_contracts/ is needed to run `forge build`/`forge test` (no deps are committed), and afterward `rm -rf smart_contracts/lib` plus removing the stray `.gitmodules` one directory above the repo (at .../web3/.gitmodules, since simple-dex isn't the git root) and `git restore --staged`/`git restore` on foundry.lock is required to keep the diff clean.
+- forge build/forge test both emit pre-existing erc20-unchecked-transfer and mixed-case-variable lint warnings (unrelated to this change, from test setup helpers and an unrelated script) -- these are warnings only, not build failures, and were not touched in this iteration to keep scope minimal.

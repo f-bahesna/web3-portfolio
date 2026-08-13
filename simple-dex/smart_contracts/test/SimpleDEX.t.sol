@@ -116,6 +116,18 @@ contract SimpleDEXTest is Test {
         assertEq(dex.rate(), 10);
     }
 
+    function testSetRateRevertsWhenZero() public {
+        // A zero rate would let swapArbiToDoge take the user's arbiFake while
+        // paying out 0 dogeFake (arbiAmount * 0 passes the liquidity check).
+        vm.expectRevert(bytes("Rate must be positive"));
+        dex.setRate(0);
+    }
+
+    function testConstructorRevertsWhenRateIsZero() public {
+        vm.expectRevert(bytes("Rate must be positive"));
+        new SimpleDEX(address(arbi), address(doge), 0);
+    }
+
     function testWithdrawOnlyOwner() public {
         vm.prank(user);
         vm.expectRevert(bytes("Not owner"));
