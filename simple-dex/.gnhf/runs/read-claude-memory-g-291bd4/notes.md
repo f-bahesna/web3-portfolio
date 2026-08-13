@@ -183,3 +183,16 @@ Objective: see .gnhf/runs/read-claude-memory-g-291bd4/prompt.md
 - ModalFaucet.jsx's getFaucet() catch block in web3config.js unconditionally alerted 'you already claimed tokens' regardless of the real error cause, confirmed by cross-referencing ArbiFake.sol's actual revert string ('Claim once per day') - a user who simply rejected the MetaMask signature prompt, or hit a network/gas error, would be told a false reason (already claimed) instead of the true one, which is misleading UX debugging-wise.
 - No frontend test framework exists in client/ (only eslint + vite build, confirmed via package.json scripts) - verification for frontend changes in this run is limited to `npm run lint` and `npm run build`, both of which remain clean (0 errors/warnings) after this fix.
 - After 13 iterations covering the major SimpleDEX/ArbiFake/DogeFake contract fund-loss bugs and App.jsx's core swap/connect flow bugs, remaining issues are smaller UX/error-message correctness bugs in secondary flows (faucet, add-token) rather than new critical bugs - worth checking ModalSelectToken.jsx and ModalAddToken.jsx's error paths next if continuing this thread.
+
+### Iteration 15
+
+**Summary:** Fixed a misleading error-message bug in the DEX swap flow where every approve/swap failure (including a plain MetaMask rejection or insufficient-liquidity revert) was shown to the user as a generic 'Transaction reverted' message.
+
+**Changes:**
+- Fixed a misleading error-message bug in client/src/App.jsx's handleSwap: the approve and swap catch blocks previously showed the same hardcoded 'Transaction reverted' alert for every failure, even a plain user rejection in MetaMask or an on-chain liquidity/amount-too-small revert.
+- Added a describeSwapError(error, action) helper that distinguishes user-rejected transactions (error.code === 4001), insufficient-DEX-liquidity reverts ('Not enough ... in DEX'), and amount-too-small-to-swap reverts, falling back to a generic 'transaction reverted' message only for unrecognized errors.
+
+**Learnings:**
+- App.jsx's handleSwap had the exact same class of misleading-error-message bug that iteration 14 fixed in the faucet flow (web3config.js's getFaucet), just in the swap approve/swap catch blocks instead -- confirming the iteration 14 note's prediction that other flows likely had the same issue.
+- The fix reuses the exact pattern already established in getFaucet (check error.code === 4001 for user rejection, then check error.message for known contract revert strings, then fall back to generic), keeping the codebase's error-handling style consistent across faucet and swap flows.
+- npm run lint (0 errors/warnings) and npm run build both remain clean after this change, consistent with the zero-lint-issue baseline established since iteration 9.
