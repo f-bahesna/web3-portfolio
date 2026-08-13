@@ -31,6 +31,13 @@ function App() {
       ? Number(amount || 0) * Number(rate)
       : Number(amount || 0) / Number(rate || 1);
 
+  // Rounds away binary floating-point noise (e.g. 0.3 * 3 = 0.8999999999999999)
+  // before it reaches the UI; this is a display-only preview, the actual swap
+  // amount sent on-chain is computed separately from the raw `amount` string.
+  const formattedBuyAmount = buyAmount
+    ? buyAmount.toFixed(6).replace(/\.?0+$/, "")
+    : "0";
+
   const refreshBalances = useCallback(async (web3Instance, contractsInstance, accountAddress) => {
     const arbiBalance = await contractsInstance.arbiFake.methods
       .balanceOf(accountAddress)
@@ -258,7 +265,7 @@ function App() {
                   {/* top */}
                   <div className="flex flex-row justify-between font-mono">
                     <p>Buying</p>
-                    <div className="font-mono text-md">{buyAmount}</div>
+                    <div className="font-mono text-md">{formattedBuyAmount}</div>
                   </div>
                   {/* end top */}
                   {/* center */}
@@ -266,7 +273,7 @@ function App() {
                     <input
                       disabled
                       className="w-2/3 font-mono bg-transparent text-3xl placeholder:text-2xl rounded-md bg-black py-2"
-                      value={buyAmount}
+                      value={formattedBuyAmount}
                       type="number"
                       placeholder="0.0001"
                     />
