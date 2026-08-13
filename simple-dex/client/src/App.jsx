@@ -1,5 +1,5 @@
 import "./App.css";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { initWeb3, TOKENS } from "./utils/web3config";
 import { LuArrowLeftRight } from "react-icons/lu";
 import { RiArrowDropDownLine } from "react-icons/ri";
@@ -33,21 +33,7 @@ function App() {
       ? Number(amount || 0) * Number(rate)
       : Number(amount || 0) / Number(rate || 1);
 
-  useEffect(() => {
-    let localAccount = localStorage.getItem("account");
-
-    if (localAccount !== null) {
-      if (window.ethereum) {
-        loadAccount();
-        window.ethereum.on("accountsChanged", loadAccount);
-      } else {
-        localStorage.removeItem("account");
-        setAccount(null);
-      }
-    }
-  }, [selectedToken]);
-
-  const refreshBalances = async (web3Instance, contractsInstance, accountAddress) => {
+  const refreshBalances = useCallback(async (web3Instance, contractsInstance, accountAddress) => {
     const arbiBalance = await contractsInstance.arbiFake.methods
       .balanceOf(accountAddress)
       .call();
@@ -59,9 +45,9 @@ function App() {
       arbi: web3Instance.utils.fromWei(arbiBalance, "ether"),
       doge: web3Instance.utils.fromWei(dogeBalance, "ether"),
     });
-  };
+  }, []);
 
-  const loadAccount = async () => {
+  const loadAccount = useCallback(async () => {
     const { web3, accounts, contracts } = await initWeb3();
 
     setWeb3(web3);
@@ -76,7 +62,28 @@ function App() {
 
     localStorage.setItem("account", accounts[0]);
     setLoading(false);
-  };
+  }, [refreshBalances]);
+
+  useEffect(() => {
+    let localAccount = localStorage.getItem("account");
+
+    if (localAccount === null) {
+      return;
+    }
+
+    if (!window.ethereum) {
+      localStorage.removeItem("account");
+      setAccount(null);
+      return;
+    }
+
+    loadAccount();
+    window.ethereum.on("accountsChanged", loadAccount);
+
+    return () => {
+      window.ethereum.removeListener("accountsChanged", loadAccount);
+    };
+  }, [loadAccount]);
 
   const resetStatus = async () => {
     setTimeout(() => {

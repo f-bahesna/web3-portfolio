@@ -92,3 +92,17 @@ Objective: see .gnhf/runs/read-claude-memory-g-291bd4/prompt.md
 - forge build's erc20-unchecked-transfer lint warning (previously noted in iteration 5 as a pre-existing warning, out of scope at the time) pointed to a real, fixable bug at SimpleDEX.sol:62 (withdraw's unchecked IERC20.transfer call) -- the other 4 instances of that same warning are in the test file's setUp() helper using the project's own well-behaved ArbiFake/DogeFake tokens (which revert on failure via OZ ERC20), so those are lower-value to fix and were left alone to keep this iteration scoped to the one real source-contract bug.
 - Full lib/ install + cleanup workflow (documented in iterations 2, 5, 6) continues to work unchanged: forge install foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts@v5.4.0 from smart_contracts/, then after testing rm -rf smart_contracts/lib, rm the stray .gitmodules one directory above simple-dex (git restore --staged failed with 'pathspec did not match' after the rm -- deleting the file directly and confirming via git status was sufficient since git status already reported it as AD/deleted), and git restore smart_contracts/foundry.lock to drop the incidental forge-std version bump it recorded.
 - The run objective asks for branch names like feat/reduce-complexity or fix/reduce-complexity, but this run operates on a single orchestrator-managed branch (gnhf/read-claude-memory-g-291bd4) with commits handled automatically after each iteration -- there is no tooling available in this iteration to create/switch branches, so that part of the objective is likely meant for the orchestrator's commit/branch-naming step rather than something an individual iteration should do itself.
+
+### Iteration 8
+
+**Summary:** Fixed a frontend bug where user token balances were never refreshed after a swap completed, and removed redundant duplicate cleanup code in the swap error path.
+
+**Changes:**
+- Extracted a reusable refreshBalances(web3, contracts, account) helper in client/src/App.jsx from the balance-fetching logic previously inlined only in loadAccount
+- Fixed a real UI staleness bug: handleSwap now calls refreshBalances() after a successful on-chain swap, so the displayed 'Selling'/'Max' balance reflects the user's actual post-swap holdings instead of the pre-swap snapshot (previously balances only updated on reconnect/account-change)
+- Removed duplicated resetStatus()/setLoading(false)/setAmount(0) calls that were present both inside the swap-failure catch block and again immediately after it in handleSwap
+
+**Learnings:**
+- App.jsx's loadAccount() fetched balances on connect/account-change but handleSwap() never re-fetched them after a swap transaction succeeded, so the UI silently showed stale balances post-swap - a real data-integrity bug that could lead a user to click 'Max' and attempt to swap more than they now actually hold, risking a failed follow-up transaction.
+- handleSwap's swap-failure catch block duplicated the exact resetStatus/setLoading/setAmount cleanup that ran unconditionally right after the try/catch, meaning on swap failure those three calls fired twice - harmless (resetStatus just restarts a 5s timer) but unnecessary complexity now removed.
+- npm run lint has one pre-existing warning (react-hooks/exhaustive-deps on the useEffect missing 'loadAccount') unrelated to this change; lint (0 errors) and vite build both pass cleanly after this fix.
