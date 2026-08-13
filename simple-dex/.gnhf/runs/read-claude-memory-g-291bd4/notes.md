@@ -221,3 +221,15 @@ Objective: see .gnhf/runs/read-claude-memory-g-291bd4/prompt.md
 - buyAmount in App.jsx is purely a display preview (Number(amount) * or / Number(rate)) - it does not affect the actual on-chain swap amount, which is computed separately via web3.utils.toWei(amount, 'ether') from the raw amount string, so fixing its formatting is a pure UX/readability improvement with zero risk to swap correctness.
 - Common rate/amount combinations (e.g. 0.3 * 3, 0.1 * 5 in some cases) trigger classic binary floating-point representation noise in JS, producing ugly long-decimal previews like 0.8999999999999999 - confirmed via node -e reproduction before fixing, per the project's 'reproduce first' guidance.
 - After 16 prior iterations, SimpleDEX.sol, ArbiFake.sol, App.jsx's core swap/connect/faucet flows, and all Modal*.jsx components show no further correctness bugs on inspection this iteration - remaining low-risk work is small display/formatting polish (like this one) or new feature additions rather than fund-loss or crash bugs.
+
+### Iteration 18
+
+**Summary:** Fixed a frontend bug where switching the sell token in the DEX swap UI carried over a stale sell amount unvalidated against the new token's balance, letting users submit swaps that would waste gas on an unnecessary approve before reverting on-chain.
+
+**Changes:**
+- client/src/App.jsx handleSelectedToken: now clears the entered amount when switching the sell token if that amount exceeds the newly selected token's balance (previously it only re-synced the amount to the new balance when isMax was true, leaving a manually-typed amount unchecked against the new token)
+
+**Learnings:**
+- handleSelectedToken's balance-sync logic was gated entirely on the isMax flag; a manually typed amount (not via the Max button) that happened to fit the previously selected token's balance was never re-validated after a token switch, so a user could unknowingly submit a swap for more than they hold in the newly selected token -- the on-chain swap would fail (ERC20 insufficient balance in transferFrom) only after a real, gas-costing approve transaction already succeeded.
+- This complements setManualAmountSwap's existing at-input-time balance validation (iteration predates this run) -- that check only fires while typing in the currently selected token; it had no equivalent safeguard for the token-switch path, which is the gap this iteration closes.
+- After 18 iterations, App.jsx's core swap/connect/faucet flows and all Modal*.jsx components continue to have no further correctness bugs found on inspection beyond small edge cases like this one; npm run lint (0 errors/warnings) and npm run build remain clean, consistent with the baseline established since iteration 9.

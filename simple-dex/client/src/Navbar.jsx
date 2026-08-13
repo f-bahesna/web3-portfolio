@@ -3,7 +3,7 @@ import ModalAddToken from "./components/ModalAddToken";
 import ModalFaucet from "./components/ModalFaucet";
 import { IoIosLogOut } from "react-icons/io";
 
-const Navbar = ({ account, disconnectAccount }) => {
+const Navbar = ({ account, disconnectAccount, onFaucetClaimed }) => {
   const [showModalAddToken, setShowModalAddToken] = useState(false);
   const [showModalFaucet, setShowModalFaucet] = useState(false);
 
@@ -59,6 +59,7 @@ const Navbar = ({ account, disconnectAccount }) => {
         <ModalFaucet
           isVisible={showModalFaucet}
           onClose={() => setShowModalFaucet(false)}
+          onClaimed={onFaucetClaimed}
         ></ModalFaucet>
       )}
     </div>

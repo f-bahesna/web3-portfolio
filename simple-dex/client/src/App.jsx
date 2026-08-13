@@ -193,6 +193,13 @@ function App() {
     setIsMax(false);
   };
 
+  const handleFaucetClaimed = useCallback(async () => {
+    if (!web3 || !account || !contracts.arbiFake) {
+      return;
+    }
+    await refreshBalances(web3, contracts, account);
+  }, [web3, contracts, account, refreshBalances]);
+
   const handleSelectedToken = (tokenId) => {
     const findTokenById = TOKENS.find((token) => token.id === Number(tokenId));
     setSelectedToken(findTokenById);
@@ -214,7 +221,11 @@ function App() {
 
   return (
     <>
-      <Navbar account={account} disconnectAccount={disconnectAccount} />
+      <Navbar
+        account={account}
+        disconnectAccount={disconnectAccount}
+        onFaucetClaimed={handleFaucetClaimed}
+      />
 
       {account ? (
         <div>

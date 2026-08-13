@@ -8,7 +8,7 @@ const env = import.meta.env;
 const NEW_ARBIFAKE_ADDRESS = env.VITE_NEW_ARBIFAKE_ADDRESS;
 const NEW_DOGEFAKE_ADDRESS = env.VITE_NEW_DOGEFAKE_ADDRESS;
 
-const ModalFaucet = ({ isVisible, onClose }) => {
+const ModalFaucet = ({ isVisible, onClose, onClaimed }) => {
   const [loading, setLoading] = useState("");
 
   if (!isVisible) return null;
@@ -17,6 +17,7 @@ const ModalFaucet = ({ isVisible, onClose }) => {
     setLoading(id);
 
     await getFaucet(ticker, address, abi);
+    await onClaimed?.();
 
     setLoading(null);
   };
