@@ -47,6 +47,20 @@ function App() {
     }
   }, [selectedToken]);
 
+  const refreshBalances = async (web3Instance, contractsInstance, accountAddress) => {
+    const arbiBalance = await contractsInstance.arbiFake.methods
+      .balanceOf(accountAddress)
+      .call();
+    const dogeBalance = await contractsInstance.dogeFake.methods
+      .balanceOf(accountAddress)
+      .call();
+
+    setUserBalance({
+      arbi: web3Instance.utils.fromWei(arbiBalance, "ether"),
+      doge: web3Instance.utils.fromWei(dogeBalance, "ether"),
+    });
+  };
+
   const loadAccount = async () => {
     const { web3, accounts, contracts } = await initWeb3();
 
@@ -55,17 +69,7 @@ function App() {
     setContracts(contracts);
     setLoading(true);
 
-    const arbiBalance = await contracts.arbiFake.methods
-      .balanceOf(accounts[0])
-      .call();
-    const dogeBalance = await contracts.dogeFake.methods
-      .balanceOf(accounts[0])
-      .call();
-
-    setUserBalance({
-      arbi: web3.utils.fromWei(arbiBalance, "ether"),
-      doge: web3.utils.fromWei(dogeBalance, "ether"),
-    });
+    await refreshBalances(web3, contracts, accounts[0]);
 
     const rate = await contracts.dex.methods.rate().call();
     setRate(rate);
@@ -120,13 +124,11 @@ function App() {
       await swapMethod(value).send({ from: account });
 
       setStatus("Swap completed...");
+      await refreshBalances(web3, contracts, account);
     } catch (error) {
       console.error(error);
       setStatus("Swap failed...");
       alert("swap failed | Transaction reverted");
-      resetStatus();
-      setLoading(false);
-      setAmount(0);
     }
 
     resetStatus();
