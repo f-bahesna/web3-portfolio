@@ -29,7 +29,8 @@ export const initWeb3 = async () => {
 
         return { web3, accounts, contracts };
     } else {
-        alert("Please install Metamask!")
+        alert("Please install Metamask!");
+        return null;
     }
 }
 

@@ -46,7 +46,11 @@ function App() {
   }, []);
 
   const loadAccount = useCallback(async () => {
-    const { web3, accounts, contracts } = await initWeb3();
+    const result = await initWeb3();
+    if (!result) {
+      return;
+    }
+    const { web3, accounts, contracts } = result;
 
     setWeb3(web3);
     setAccount(accounts[0]);

@@ -144,3 +144,16 @@ Objective: see .gnhf/runs/read-claude-memory-g-291bd4/prompt.md
 - ModalAddToken.jsx's addTokenToWallet had the same class of stuck-loading bug as prior iterations' UI fixes, but triggered by a resolved-false value rather than a thrown exception: MetaMask's wallet_watchAsset resolves `false` on user rejection instead of throwing, so a try/catch alone doesn't cover the reset path -- only a finally (or resetting outside the if) does.
 - ModalFaucet.jsx's analogous addTokenFaucetToWallet does NOT have this bug: getFaucet() in web3config.js already wraps its logic in its own internal try/catch and never rethrows, so ModalFaucet's outer `setLoading(null)` after the await always runs regardless of faucet success/failure/rejection.
 - Reviewed SimpleDEX.sol, ArbiFake.sol, App.jsx, and all Modal*.jsx components this iteration; no further correctness bugs found on inspection beyond this one -- remaining candidates for future iterations are likely readability/structure (e.g. vite's 665kB single-chunk bundle warning, or extracting the swap-flow into smaller hooks) rather than new functional bugs.
+
+### Iteration 12
+
+**Summary:** Removed a stray unconditional initWeb3() call at App.jsx module scope that silently triggered an unwanted MetaMask connection popup on every page load (even for first-time visitors) while its result was completely discarded.
+
+**Changes:**
+- Removed an unconditional `initWeb3();` call at module load time in client/src/App.jsx that fired `eth_requestAccounts` (a MetaMask wallet-connection popup) on every single page visit, regardless of whether the user clicked 'Connect Metamask' or had a previously stored account, and whose returned web3/accounts/contracts were discarded and never used anywhere.
+
+**Learnings:**
+- App.jsx called `initWeb3()` twice on a fresh page load with a stored account: once unconditionally at module scope (line 9, result discarded) and once inside loadAccount() via the mount useEffect (result actually used) -- the first call served no functional purpose but still triggered a real MetaMask eth_requestAccounts prompt immediately on page load for every visitor, even first-time visitors with no localStorage account, before they ever clicked 'Connect Metamask'.
+- Confirmed via `git log -p --follow` that this stray top-level `initWeb3();` call has existed since the very first commit of App.jsx, so it was an original design artifact (likely a leftover initialization attempt) rather than something introduced by a prior iteration.
+- Confirmed via grep that web3config.js's module-scoped `web3`/`accounts`/`contracts` variables (mutated inside initWeb3) are never read anywhere else in the codebase, so the discarded top-level call had zero functional dependents and was safe to delete outright.
+- npm run lint (0 errors/warnings) and npm run build (vite build succeeds, same pre-existing 665kB single-chunk warning noted in earlier iterations) both pass after the removal, confirming no regression.
