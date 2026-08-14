@@ -29,7 +29,8 @@ export const initWeb3 = async () => {
 
         return { web3, accounts, contracts };
     } else {
-        alert("Please install Metamask!")
+        alert("Please install Metamask!");
+        return null;
     }
 }
 
@@ -40,11 +41,18 @@ export const getFaucet = async (ticker, address, abi) => {
         const accounts = await window.ethereum.request({ method: "eth_requestAccounts"});
         const contract = new web3.eth.Contract(abi, address);
 
-        const tx = await contract.methods.faucet().send({ from: accounts[0]});
+        await contract.methods.faucet().send({ from: accounts[0]});
         alert(`You received 10 ${ticker} tokens!`);
     } catch (error) {
-        console.log(error)
-        alert("faucet failed: you already claimed tokens");
+        console.error(error);
+
+        if (error?.code === 4001) {
+            alert("Faucet transaction was rejected.");
+        } else if (error?.message?.includes("Claim once per day")) {
+            alert("You already claimed tokens today, try again after 24 hours.");
+        } else {
+            alert("Faucet failed: transaction reverted.");
+        }
     }
 }
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import ModalWrapper from "./ModalWrapper";
 
 const ModalSelectToken = ({
@@ -9,7 +9,7 @@ const ModalSelectToken = ({
   selectedToken,
 }) => {
   if (!isVisible) return null;
-  //   const [selectedToken, setSelectedToken] = useState();
+
   const handleChange = (e) => {
     onDataSend(e.target.value);
   };

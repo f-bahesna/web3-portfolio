@@ -1,12 +1,10 @@
 import "./App.css";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { initWeb3, TOKENS } from "./utils/web3config";
 import { LuArrowLeftRight } from "react-icons/lu";
 import { RiArrowDropDownLine } from "react-icons/ri";
 import ModalSelectToken from "./components/ModalSelectToken";
 import Navbar from "./Navbar.jsx";
-
-initWeb3();
 
 function App() {
   const [account, setAccount] = useState(null);
@@ -28,46 +26,73 @@ function App() {
 
   const isDisabled = !amount || Number(amount) <= 0;
 
-  useEffect(() => {
-    let localAccount = localStorage.getItem("account");
+  const buyAmount =
+    selectedToken.ticker === "AFAKE"
+      ? Number(amount || 0) * Number(rate)
+      : Number(amount || 0) / Number(rate || 1);
 
-    if (localAccount !== null) {
-      if (window.ethereum) {
-        loadAccount();
-        window.ethereum.on("accountsChanged", loadAccount);
-      } else {
-        localStorage.removeItem("account");
-        setAccount(null);
-      }
+  // Rounds away binary floating-point noise (e.g. 0.3 * 3 = 0.8999999999999999)
+  // before it reaches the UI; this is a display-only preview, the actual swap
+  // amount sent on-chain is computed separately from the raw `amount` string.
+  const formattedBuyAmount = buyAmount
+    ? buyAmount.toFixed(6).replace(/\.?0+$/, "")
+    : "0";
+
+  const refreshBalances = useCallback(async (web3Instance, contractsInstance, accountAddress) => {
+    const arbiBalance = await contractsInstance.arbiFake.methods
+      .balanceOf(accountAddress)
+      .call();
+    const dogeBalance = await contractsInstance.dogeFake.methods
+      .balanceOf(accountAddress)
+      .call();
+
+    setUserBalance({
+      arbi: web3Instance.utils.fromWei(arbiBalance, "ether"),
+      doge: web3Instance.utils.fromWei(dogeBalance, "ether"),
+    });
+  }, []);
+
+  const loadAccount = useCallback(async () => {
+    const result = await initWeb3();
+    if (!result) {
+      return;
     }
-  }, [selectedToken]);
-
-  const loadAccount = async () => {
-    const { web3, accounts, contracts } = await initWeb3();
+    const { web3, accounts, contracts } = result;
 
     setWeb3(web3);
     setAccount(accounts[0]);
     setContracts(contracts);
     setLoading(true);
 
-    const arbiBalance = await contracts.arbiFake.methods
-      .balanceOf(accounts[0])
-      .call();
-    const dogeBalance = await contracts.dogeFake.methods
-      .balanceOf(accounts[0])
-      .call();
-
-    setUserBalance({
-      arbi: web3.utils.fromWei(arbiBalance, "ether"),
-      doge: web3.utils.fromWei(dogeBalance, "ether"),
-    });
+    await refreshBalances(web3, contracts, accounts[0]);
 
     const rate = await contracts.dex.methods.rate().call();
     setRate(rate);
 
     localStorage.setItem("account", accounts[0]);
     setLoading(false);
-  };
+  }, [refreshBalances]);
+
+  useEffect(() => {
+    let localAccount = localStorage.getItem("account");
+
+    if (localAccount === null) {
+      return;
+    }
+
+    if (!window.ethereum) {
+      localStorage.removeItem("account");
+      setAccount(null);
+      return;
+    }
+
+    loadAccount();
+    window.ethereum.on("accountsChanged", loadAccount);
+
+    return () => {
+      window.ethereum.removeListener("accountsChanged", loadAccount);
+    };
+  }, [loadAccount]);
 
   const resetStatus = async () => {
     setTimeout(() => {
@@ -80,12 +105,26 @@ function App() {
     setAccount(null);
   };
 
-  //SWAP FUNCTION
-  const swapArbiToDoge = async () => {
-    if (selectedToken.ticker === "DFAKE") {
-      alert("The pair still in maintenance");
-      return;
+  const describeSwapError = (error, action) => {
+    if (error?.code === 4001) {
+      return `${action} was rejected in Metamask.`;
     }
+    if (error?.message?.includes("Not enough")) {
+      return "The DEX doesn't have enough liquidity for this swap right now.";
+    }
+    if (error?.message?.includes("Amount too small to swap")) {
+      return "Amount too small to swap at the current rate.";
+    }
+    return `${action} failed: transaction reverted.`;
+  };
+
+  //SWAP FUNCTION
+  const handleSwap = async () => {
+    const sellingArbi = selectedToken.ticker === "AFAKE";
+    const sellToken = sellingArbi ? contracts.arbiFake : contracts.dogeFake;
+    const swapMethod = sellingArbi
+      ? contracts.dex.methods.swapArbiToDoge
+      : contracts.dex.methods.swapDogeToArbi;
 
     setLoading(true);
     const value = web3.utils.toWei(amount, "ether");
@@ -93,14 +132,15 @@ function App() {
     try {
       setStatus("Approving tokens...");
 
-      await contracts.arbiFake.methods
-        .approve(contracts.dex._address, value)
+      await sellToken.methods
+        .approve(contracts.dex.options.address, value)
         .send({ from: account });
 
       setStatus("Token Approved...");
     } catch (error) {
+      console.error(error);
       setStatus("Approving failed...");
-      alert("approving failed | Transaction reverted");
+      alert(describeSwapError(error, "Approving"));
       resetStatus();
       setLoading(false);
       setAmount(0);
@@ -110,15 +150,14 @@ function App() {
     try {
       setStatus("Swapping tokens...");
 
-      await contracts.dex.methods.swapArbiToDoge(value).send({ from: account });
+      await swapMethod(value).send({ from: account });
 
       setStatus("Swap completed...");
+      await refreshBalances(web3, contracts, account);
     } catch (error) {
+      console.error(error);
       setStatus("Swap failed...");
-      alert("swap failed | Transaction reverted");
-      resetStatus();
-      setLoading(false);
-      setAmount(0);
+      alert(describeSwapError(error, "Swap"));
     }
 
     resetStatus();
@@ -154,21 +193,45 @@ function App() {
     setIsMax(false);
   };
 
+  const handleFaucetClaimed = useCallback(async () => {
+    if (!web3 || !account || !contracts.arbiFake) {
+      return;
+    }
+    await refreshBalances(web3, contracts, account);
+  }, [web3, contracts, account, refreshBalances]);
+
   const handleSelectedToken = (tokenId) => {
     const findTokenById = TOKENS.find((token) => token.id === Number(tokenId));
     setSelectedToken(findTokenById);
+
+    const newBalance =
+      findTokenById.ticker === "AFAKE" ? userBalance.arbi : userBalance.doge;
+
     if (isMax) {
-      setAmount(
-        findTokenById.ticker === "AFAKE" ? userBalance.arbi : userBalance.doge
-      );
+      setAmount(newBalance);
+    } else if (Number(amount) > Number(newBalance)) {
+      // The previously entered amount no longer fits the newly selected
+      // token's balance; clear it instead of letting the user submit a
+      // swap that will always revert on-chain after wasting gas on approve.
+      setAmount("");
     }
 
     SetShowModalSelectToken(false);
   };
 
+  const handleFlipTokens = () => {
+    const pairTicker = selectedToken.pairs[0].ticker;
+    const pairToken = TOKENS.find((token) => token.ticker === pairTicker);
+    handleSelectedToken(pairToken.id);
+  };
+
   return (
     <>
-      <Navbar account={account} disconnectAccount={disconnectAccount} />
+      <Navbar
+        account={account}
+        disconnectAccount={disconnectAccount}
+        onFaucetClaimed={handleFaucetClaimed}
+      />
 
       {account ? (
         <div>
@@ -221,12 +284,22 @@ function App() {
                   </div>
                 </div>
               </div>
+              <div className="flex justify-center -my-3 relative z-10">
+                <button
+                  type="button"
+                  onClick={handleFlipTokens}
+                  aria-label="Flip sell and buy tokens"
+                  className="rotate-90 text-2xl text-white bg-zinc-800 hover:bg-zinc-700 border-4 border-black rounded-full p-1.5 cursor-pointer transition-colors duration-300"
+                >
+                  <LuArrowLeftRight />
+                </button>
+              </div>
               <div className="flex flex-col gap-4 text-md text-foreground bg-black rounded-3xl">
                 <div className="px-4 py-2">
                   {/* top */}
                   <div className="flex flex-row justify-between font-mono">
                     <p>Buying</p>
-                    <div className="font-mono text-md">0.0001</div>
+                    <div className="font-mono text-md">{formattedBuyAmount}</div>
                   </div>
                   {/* end top */}
                   {/* center */}
@@ -234,7 +307,7 @@ function App() {
                     <input
                       disabled
                       className="w-2/3 font-mono bg-transparent text-3xl placeholder:text-2xl rounded-md bg-black py-2"
-                      value={amount * Number(rate)}
+                      value={formattedBuyAmount}
                       type="number"
                       placeholder="0.0001"
                     />
@@ -256,7 +329,7 @@ function App() {
 
           <div className="flex justify-center items-center">
             <div
-              onClick={!isDisabled ? swapArbiToDoge : undefined}
+              onClick={!isDisabled ? handleSwap : undefined}
               className={`bg-[#3dad8a] hover:bg-[#47cfa4] transition-colors duration-300 text-2xl rounded-2xl w-full sm:w-1/2 cursor-pointer ${
                 isDisabled ? "opacity-25 pointer-events-none" : "opacity-100"
               }`}
@@ -269,6 +342,11 @@ function App() {
               </button>
             </div>
           </div>
+          {status && (
+            <div className="flex justify-center items-center mt-4 font-mono text-sm text-gray-300">
+              {status}
+            </div>
+          )}
         </div>
       ) : (
         <div className="flex justify-center items-center h-screen">
